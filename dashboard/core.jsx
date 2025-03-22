@@ -1,8 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { fetchTrainingSessions, fetchSessionData, connectWebSocket, loadMockData } from './service';
-import SideLeft from './side_left';
-import SideRight from './side_right';
-import Footer from './footer';
+// Using global React instead of imports for in-browser Babel compatibility
+// import React, { useState, useEffect } from 'react';
+// import { fetchTrainingSessions, fetchSessionData, connectWebSocket, loadMockData } from './service';
+// import SideLeft from './side_left';
+// import SideRight from './side_right';
+// import Footer from './footer';
+
+// Destructure React hooks from global React
+const { useState, useEffect } = React;
+
+// Access service functions from global scope
+const { fetchTrainingSessions, fetchSessionData, connectWebSocket, loadMockData } = window;
 
 /**
  * Core dashboard component
@@ -202,4 +209,8 @@ const Core = () => {
     );
 };
 
+// Expose Core component to global scope
+window.Core = Core;
+
+// Also export as default for module systems
 export default Core;

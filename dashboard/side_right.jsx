@@ -1,4 +1,10 @@
-import React, { useRef, useEffect } from 'react';
+// Using global React instead of imports for in-browser Babel compatibility
+// import React, { useRef, useEffect } from 'react';
+
+// Access React hooks from global React
+const { useRef, useEffect } = React;
+// Access Chart component from global scope
+const Chart = window.ChartComponent;
 
 /**
  * Right side panel component
@@ -8,7 +14,7 @@ const SideRight = ({ data }) => {
     const canvasRef = useRef(null);
     
     if (!data || !data.current || !data.best_agent) {
-        return <div className="side-panel side-right">Loading data...</div>;
+        return <div className="dashboard-side-right">Loading data...</div>;
     }
     
     const { current, best_agent } = data;
@@ -242,7 +248,7 @@ const SideRight = ({ data }) => {
     };
     
     return (
-        <div className="side-panel side-right">
+        <div className="dashboard-side-right">
             <h2>Best Agent</h2>
             
             <div className="agent-stats">
@@ -308,4 +314,8 @@ const SideRight = ({ data }) => {
     );
 };
 
+// Expose SideRight component to global scope
+window.SideRightComponent = SideRight;
+
+// Also export as default for module systems
 export default SideRight;

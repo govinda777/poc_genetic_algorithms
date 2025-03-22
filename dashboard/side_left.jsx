@@ -1,5 +1,9 @@
-import React from 'react';
-import Chart from '../components/chart';
+// Using global React instead of imports for in-browser Babel compatibility
+// import React from 'react';
+// import Chart from '../components/chart';
+
+// Access Chart component from global scope
+const Chart = window.ChartComponent;
 
 /**
  * Left side panel component
@@ -13,7 +17,7 @@ const SideLeft = ({ data }) => {
     const { current, charts } = data;
 
     return (
-        <div className="side-panel side-left">
+        <div className="dashboard-side-left">
             <h2>Training Statistics</h2>
             
             <div className="stats-container">
@@ -162,4 +166,8 @@ const SideLeft = ({ data }) => {
     );
 };
 
+// Expose SideLeft component to global scope
+window.SideLeftComponent = SideLeft;
+
+// Also export as default for module systems
 export default SideLeft;

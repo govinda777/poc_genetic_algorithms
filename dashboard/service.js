@@ -9,7 +9,7 @@
  * Fetch the list of available training sessions
  * @returns {Promise<Array>} List of training sessions
  */
-export async function fetchTrainingSessions() {
+async function fetchTrainingSessions() {
     try {
         const response = await fetch('../data/sessions.json');
         if (!response.ok) {
@@ -18,7 +18,16 @@ export async function fetchTrainingSessions() {
         return await response.json();
     } catch (error) {
         console.error('Error fetching training sessions:', error);
-        return [];
+        console.log('Using mock session data instead');
+        // Return mock session data if fetch fails
+        return [
+            {
+                session_id: 'mock_session',
+                start_time: 'Mock Session',
+                generations: 42,
+                best_fitness: 789.5
+            }
+        ];
     }
 }
 
@@ -27,7 +36,7 @@ export async function fetchTrainingSessions() {
  * @param {string} sessionId - ID of the session to fetch
  * @returns {Promise<Object>} Session data
  */
-export async function fetchSessionData(sessionId) {
+async function fetchSessionData(sessionId) {
     try {
         const response = await fetch(`../data/session_${sessionId}/dashboard_data.json`);
         if (!response.ok) {
@@ -36,7 +45,9 @@ export async function fetchSessionData(sessionId) {
         return await response.json();
     } catch (error) {
         console.error(`Error fetching session data for ${sessionId}:`, error);
-        return null;
+        console.log('Using mock data instead');
+        // Return mock data if fetch fails
+        return loadMockData();
     }
 }
 
@@ -45,7 +56,7 @@ export async function fetchSessionData(sessionId) {
  * @param {string} sessionId - ID of the session
  * @returns {Promise<Object>} Best agent data
  */
-export async function fetchBestAgent(sessionId) {
+async function fetchBestAgent(sessionId) {
     try {
         const response = await fetch(`../data/session_${sessionId}/latest_best_agent.json`);
         if (!response.ok) {
@@ -63,7 +74,7 @@ export async function fetchBestAgent(sessionId) {
  * @param {string} sessionId - ID of the session
  * @returns {Promise<Array>} Generation data
  */
-export async function fetchGenerationData(sessionId) {
+async function fetchGenerationData(sessionId) {
     try {
         const response = await fetch(`../data/session_${sessionId}/generation_data.json`);
         if (!response.ok) {
@@ -81,7 +92,7 @@ export async function fetchGenerationData(sessionId) {
  * @param {string} sessionId - ID of the session to check
  * @returns {Promise<boolean>} True if session is active, false otherwise
  */
-export async function isSessionActive(sessionId) {
+async function isSessionActive(sessionId) {
     try {
         const response = await fetch(`../data/session_${sessionId}/status.json`);
         if (!response.ok) {
@@ -100,7 +111,7 @@ export async function isSessionActive(sessionId) {
  * @param {Function} onMessage - Callback function for received messages
  * @returns {WebSocket} WebSocket connection
  */
-export function connectWebSocket(sessionId, onMessage) {
+function connectWebSocket(sessionId, onMessage) {
     // This is a placeholder for WebSocket implementation
     // In a real implementation, this would connect to a WebSocket server
     console.log(`Connecting to WebSocket for session ${sessionId}`);
@@ -142,7 +153,7 @@ export function connectWebSocket(sessionId, onMessage) {
  * Load mock data for development
  * @returns {Object} Mock dashboard data
  */
-export function loadMockData() {
+function loadMockData() {
     return {
         session_id: 'mock_session',
         current: {
@@ -170,3 +181,12 @@ export function loadMockData() {
         }
     };
 }
+
+// Expose service functions to global scope
+window.fetchTrainingSessions = fetchTrainingSessions;
+window.fetchSessionData = fetchSessionData;
+window.fetchBestAgent = fetchBestAgent;
+window.fetchGenerationData = fetchGenerationData;
+window.isSessionActive = isSessionActive;
+window.connectWebSocket = connectWebSocket;
+window.loadMockData = loadMockData;

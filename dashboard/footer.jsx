@@ -1,4 +1,5 @@
-import React from 'react';
+// Using global React instead of imports for in-browser Babel compatibility
+// import React from 'react';
 
 /**
  * Footer component
@@ -65,4 +66,8 @@ const Footer = () => {
     );
 };
 
+// Expose Footer component to global scope
+window.Footer = Footer;
+
+// Also export as default for module systems
 export default Footer;

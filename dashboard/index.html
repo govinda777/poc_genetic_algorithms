@@ -18,53 +18,180 @@
     <!-- Dashboard Root Element -->
     <div id="dashboard-root"></div>
     
-    <!-- Dashboard Scripts -->
-    <script type="text/babel" src="../components/chart.jsx"></script>
-    <script type="text/babel" src="service.js"></script>
-    <script type="text/babel" src="side_left.jsx"></script>
-    <script type="text/babel" src="side_right.jsx"></script>
-    <script type="text/babel" src="footer.jsx"></script>
-    <script type="text/babel" src="core.jsx"></script>
-    <script type="text/babel" src="index.jsx"></script>
-    
-    <!-- For development without build tools -->
+    <!-- Dashboard Scripts - Load in correct order for dependencies -->
     <script type="text/babel">
-        // This script is only needed for development without a build system
-        // It ensures that all components are loaded before rendering
-        
-        // Check if all required scripts are loaded
-        function checkScriptsLoaded() {
-            return (
-                typeof React !== 'undefined' &&
-                typeof ReactDOM !== 'undefined' &&
-                typeof Chart !== 'undefined' &&
-                typeof Dashboard !== 'undefined'
-            );
-        }
-        
-        // Initialize dashboard when all scripts are loaded
-        function initDashboard() {
-            if (checkScriptsLoaded()) {
-                console.log('All scripts loaded, initializing dashboard');
-                
-                // The Dashboard component will be rendered by the code in index.jsx
-                // This is just a fallback in case the event listener in index.jsx doesn't fire
-                const rootElement = document.getElementById('dashboard-root');
-                if (rootElement && rootElement.childNodes.length === 0) {
-                    ReactDOM.render(React.createElement(Dashboard), rootElement);
-                }
-            } else {
-                console.warn('Some scripts are not loaded yet, retrying in 500ms');
-                setTimeout(initDashboard, 500);
+        // Define a global variable to store mock data
+        window.mockData = {
+            session_id: 'mock_session',
+            current: {
+                generation: 42,
+                best_fitness: 789.5,
+                avg_fitness: 456.2,
+                max_size: 15,
+                diversity: 0.75,
+                alive_agents: 87,
+                training_time: '1h 23m 45s'
+            },
+            charts: {
+                generations: Array.from({ length: 42 }, (_, i) => i + 1),
+                best_fitness: Array.from({ length: 42 }, () => Math.random() * 1000),
+                avg_fitness: Array.from({ length: 42 }, () => Math.random() * 500),
+                diversity: Array.from({ length: 42 }, () => Math.random()),
+                max_size: Array.from({ length: 42 }, () => Math.floor(Math.random() * 20) + 3)
+            },
+            best_agent: {
+                generation: 42,
+                fitness: 789.5,
+                food_eaten: 12,
+                steps_taken: 567,
+                weights: Array.from({ length: 500 }, () => Math.random() * 2 - 1)
             }
-        }
+        };
+    </script>
+    
+    <!-- Simple Dashboard Implementation -->
+    <script type="text/babel">
+        // Simple Chart Component
+        const ChartComponent = ({ type, labels, datasets, options }) => {
+            return (
+                <div className="chart-container">
+                    <div className="mock-chart">
+                        <div className="mock-chart-header">
+                            <h4>{type.toUpperCase()} Chart</h4>
+                            <p>Chart visualization</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
         
-        // Start initialization when the DOM is loaded
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initDashboard);
-        } else {
-            initDashboard();
-        }
+        // Footer Component
+        const Footer = () => {
+            return (
+                <footer className="dashboard-footer">
+                    <div className="footer-content">
+                        <div className="footer-section">
+                            <h3>Snake Game Genetic Algorithm POC</h3>
+                            <p>A proof of concept for studying genetic algorithms</p>
+                        </div>
+                    </div>
+                    <div className="footer-bottom">
+                        <p>&copy; {new Date().getFullYear()} Snake Game Genetic Algorithm POC</p>
+                    </div>
+                </footer>
+            );
+        };
+        
+        // Side Left Component
+        const SideLeft = ({ data }) => {
+            if (!data || !data.current) {
+                return <div className="side-panel side-left">Loading data...</div>;
+            }
+            
+            const { current, charts } = data;
+            
+            return (
+                <div className="dashboard-side-left">
+                    <h2>Training Statistics</h2>
+                    <div className="stats-container">
+                        <div className="stat-card">
+                            <h3>Generation</h3>
+                            <div className="stat-value">{current.generation}</div>
+                        </div>
+                        <div className="stat-card">
+                            <h3>Alive Agents</h3>
+                            <div className="stat-value">{current.alive_agents}</div>
+                        </div>
+                        <div className="stat-card">
+                            <h3>Diversity</h3>
+                            <div className="stat-value">{(current.diversity * 100).toFixed(1)}%</div>
+                        </div>
+                        <div className="stat-card">
+                            <h3>Training Time</h3>
+                            <div className="stat-value">{current.training_time}</div>
+                        </div>
+                    </div>
+                    <div className="charts-container">
+                        <div className="chart-wrapper">
+                            <h3>Fitness Evolution</h3>
+                            <ChartComponent type="line" />
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Side Right Component
+        const SideRight = ({ data }) => {
+            if (!data || !data.best_agent) {
+                return <div className="dashboard-side-right">Loading data...</div>;
+            }
+            
+            const { best_agent } = data;
+            
+            return (
+                <div className="dashboard-side-right">
+                    <h2>Best Agent</h2>
+                    <div className="agent-stats">
+                        <div className="stat-card">
+                            <h3>Fitness</h3>
+                            <div className="stat-value">{best_agent.fitness.toFixed(2)}</div>
+                        </div>
+                        <div className="stat-card">
+                            <h3>Food Eaten</h3>
+                            <div className="stat-value">{best_agent.food_eaten}</div>
+                        </div>
+                        <div className="stat-card">
+                            <h3>Snake Size</h3>
+                            <div className="stat-value">{best_agent.food_eaten + 3}</div>
+                        </div>
+                        <div className="stat-card">
+                            <h3>Steps Taken</h3>
+                            <div className="stat-value">{best_agent.steps_taken}</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Core Component
+        const Core = () => {
+            const [data, setData] = React.useState(window.mockData);
+            
+            return (
+                <div className="dashboard">
+                    <header className="dashboard-header">
+                        <h1>Snake Game Genetic Algorithm Dashboard</h1>
+                        <div className="controls">
+                            <button>Use Mock Data</button>
+                        </div>
+                    </header>
+                    
+                    <div className="dashboard-content">
+                        <div className="panels">
+                            <SideLeft data={data} />
+                            <SideRight data={data} />
+                        </div>
+                        <Footer />
+                    </div>
+                </div>
+            );
+        };
+        
+        // Dashboard Component
+        const Dashboard = () => {
+            return (
+                <div className="dashboard-container">
+                    <Core />
+                </div>
+            );
+        };
+        
+        // Render the Dashboard
+        ReactDOM.render(
+            <Dashboard />,
+            document.getElementById('dashboard-root')
+        );
     </script>
 </body>
 </html>

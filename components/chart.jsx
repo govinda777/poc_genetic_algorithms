@@ -1,4 +1,8 @@
-import React, { useRef, useEffect } from 'react';
+// Using global React instead of imports for in-browser Babel compatibility
+// import React, { useRef, useEffect } from 'react';
+
+// Access React hooks from global React
+const { useRef, useEffect } = React;
 
 /**
  * Chart component
@@ -7,7 +11,7 @@ import React, { useRef, useEffect } from 'react';
  * Note: This is a simplified implementation that assumes Chart.js is loaded globally.
  * In a real implementation, you would import Chart.js as a dependency.
  */
-const Chart = ({ type, labels, datasets, options }) => {
+const ChartComponent = ({ type, labels, datasets, options }) => {
     const canvasRef = useRef(null);
     const chartRef = useRef(null);
     
@@ -15,7 +19,7 @@ const Chart = ({ type, labels, datasets, options }) => {
         if (!canvasRef.current) return;
         
         // Check if Chart.js is available
-        if (typeof Chart === 'undefined') {
+        if (typeof window.Chart === 'undefined') {
             console.error('Chart.js is not loaded. Please include Chart.js in your project.');
             return;
         }
@@ -57,7 +61,7 @@ const Chart = ({ type, labels, datasets, options }) => {
  * Mock implementation for development without Chart.js
  * This will render a placeholder when Chart.js is not available
  */
-const MockChart = ({ type, labels, datasets, options }) => {
+const MockChartComponent = ({ type, labels, datasets, options }) => {
     return (
         <div className="mock-chart">
             <div className="mock-chart-header">
@@ -116,6 +120,11 @@ const MockChart = ({ type, labels, datasets, options }) => {
 /**
  * Export the appropriate chart component based on environment
  */
+// Expose Chart components to global scope
+window.ChartComponent = ChartComponent;
+window.MockChartComponent = MockChartComponent;
+
+// Export the appropriate chart component based on environment
 export default typeof window !== 'undefined' && typeof window.Chart !== 'undefined' 
-    ? Chart 
-    : MockChart;
+    ? ChartComponent 
+    : MockChartComponent;
