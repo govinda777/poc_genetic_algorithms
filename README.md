@@ -49,34 +49,145 @@ O projeto atualmente inclui:
 - `configs/`: Arquivos de configuração para o jogo e o algoritmo.
 - `README.md`: Este arquivo de documentação.
 
-## Resumo do Vídeo "Rede Neural aprendendo a jogar o jogo da cobrinha (SNAKE)"
+Perfeito! Agora que você está organizando sua POC em `/game`, `/ga` e `/dashboard`, podemos estruturar um **plano passo a passo** para montar um projeto robusto e modular, inspirado diretamente no vídeo do Universo Programado.
 
-- Introdução ao projeto, explicando o objetivo de usar uma inteligência artificial para aprender a jogar o clássico jogo da cobrinha. São apresentados os conceitos básicos do jogo e a importância do treinamento.
-  
-- Apresentação da estratégia do **ciclo hamiltoniano**, que percorre todo o tabuleiro, mas mostra-se ineficiente por exigir milhares de movimentos para concluir uma partida.
+---
 
-- Introdução do conceito de **energia** para limitar os movimentos do agente, evitando loops infinitos. A cobrinha perde energia a cada movimento e a repõe ao consumir comida.
+## 📐 Estrutura Geral do Projeto
 
--  Exploração de diferentes abordagens para a "visão" da comida:
-  - Uso de coordenadas absolutas (x e y);
-  - Distâncias e sensores;
-  - Abordagem com **coordenadas polares relativas à cabeça**, que demonstrou ser a mais eficiente e generalizável para tabuleiros de diferentes tamanhos.
+```
+poc_genetic_algorithms/
+├── /game/            # Jogo da cobrinha (interface HTML + JS)
+│   └── snake_game.html
+│   └── snake.js
+│   └── assets/
+│
+├── /ga/              # Lógica genética e neural (em Python)
+│   └── snake_ga.py
+│   └── snake_ga_data.py
+│   └── snake_ga_training.py
+│
+├── /dashboard/       # Frontend do painel com React
+│   ├── index.jsx
+│   ├── core.jsx
+│   ├── side_left.jsx
+│   ├── side_right.jsx
+│   ├── footer.jsx
+│   ├── service.js     # Comunicação com GA ou leitura de arquivos
+│
+├── /components/      # Componentes React reutilizáveis
+│   └── chart.jsx
+│   └── progressBar.jsx
+│
+├── /data/            # (opcional) JSONs exportados do GA
+├── README.md
+└── requirements.txt  # dependências Python
+```
 
--  Inicialmente, a rede neural é treinada com dois inputs: distância e ângulo até a comida. Testes revelam que, em alguns casos, apenas o ângulo já é suficiente para a IA aprender a perseguição, melhorando a generalização.
+---
 
-- Com o aumento do tamanho da cobrinha, são adicionados sensores (em 8 direções) para detectar obstáculos (parede e o próprio corpo), permitindo que a IA adapte sua estratégia e evite colisões.
+## ✅ Etapas do Desenvolvimento
 
-- No modo completo (comida + obstáculos), a avaliação de desempenho é feita em três partidas por geração para reduzir variações aleatórias na pontuação, garantindo uma avaliação mais robusta do comportamento do agente.
+### 1. 🎮 `/game/` — Criar o jogo da cobrinha
 
-- Ajustes na pontuação, incorporando a energia restante para incentivar movimentos mais curtos e eficientes, resultando em estratégias como zigue-zague e varredura de ciclo.
+**Objetivo:** versão visual do jogo onde o agente pode ser testado de forma interativa.
 
-- Simplificação da rede neural (remoção de sensores de distância) demonstra que uma configuração mais enxuta pode levar a melhor performance, com a cobrinha alcançando recordes de desempenho (até 176 comidas coletadas).
+#### Etapas:
+1. Criar `snake_game.html` com `<canvas>` e controles básicos.
+2. Criar `snake.js` com:
+   - Grid 25x25
+   - Cobrinha (movimento, colisão, crescimento)
+   - Geração de comida aleatória
+   - Hooks para leitura de estado: `getSnakeState()` e `applyAction()`
+3. Adicionar visualização opcional da direção/ângulo (como no vídeo).
+4. Exportar função de `step()` para que o GA possa interagir com o jogo via socket ou API futuramente.
 
-## Futuras Melhorias
+---
 
-- Adicionar novos jogos e desafios (obstáculos, teletransportes, etc.) para diversificar os cenários de treinamento.
-- Refinar os parâmetros do algoritmo genético para melhorar a convergência e o desempenho da IA.
-- Integrar métodos híbridos (ex.: aprendizagem por reforço) para complementar os algoritmos genéticos.
+### 2. 🧬 `/ga/` — Algoritmo genético com Python
+
+**Objetivo:** Treinar redes neurais com sensores, usando algoritmos genéticos.
+
+#### Arquivos e funções:
+
+#### `snake_ga.py`
+- Criação da população
+- Codificação da rede neural (vetor de pesos)
+- Seleção, crossover, mutação
+- Sensores: 
+  - distância
+  - ângulo
+  - sensores em 8 direções
+- Avaliação de fitness baseada em:
+  - número de comidas
+  - energia restante
+  - quantidade de movimentos úteis
+
+#### `snake_ga_training.py`
+- Regras do treino
+- Geração de partidas (N partidas por agente)
+- Controle de tempo e energia
+- Loop principal do GA
+
+#### `snake_ga_data.py`
+- Exportação de:
+  - fitness por geração
+  - diversidade estimada
+  - maior tamanho por geração
+  - melhor agente de cada geração (em `.json` ou `.csv`)
+- Função para `save_training_session()` para alimentar o dashboard
+
+---
+
+### 3. 🧩 `/dashboard/` — Painel de controle em React
+
+**Objetivo:** Visualizar, em tempo real ou pós-treino, o progresso do aprendizado da IA.
+
+#### Componentes sugeridos:
+
+- `core.jsx`: carrega os dados e distribui nos lados.
+- `side_left.jsx`: mostra:
+  - Geração
+  - Número de indivíduos vivos
+  - Diversidade (%)
+  - Tempo treinando
+- `side_right.jsx`: mostra:
+  - Melhor indivíduo (rede neural desenhada)
+  - Tamanho e Energia
+  - Fitness
+- `chart.jsx`: renderiza o gráfico de evolução de fitness/diversidade com Chart.js
+- `footer.jsx`: créditos, link para código, etc.
+- `service.js`: faz fetch de dados locais ou via websocket/api REST para o GA
+
+---
+
+## 🚀 Roteiro de Desenvolvimento
+
+| Etapa | Tarefa | Pasta | Ferramenta |
+|-------|--------|-------|------------|
+| 1 | Criar o jogo jogável | `/game` | HTML, JS, Canvas |
+| 2 | Criar função `get_state()` e `apply_action()` | `/game` | JS |
+| 3 | Implementar rede neural simples (com vetor de pesos) | `/ga` | Python |
+| 4 | Criar população inicial e loop do GA | `/ga` | Python |
+| 5 | Implementar sensores (distância + ângulo) | `/ga` | Python |
+| 6 | Implementar função de `fitness` | `/ga` | Python |
+| 7 | Adicionar diversidade e melhor indivíduo por geração | `/ga` | Python |
+| 8 | Exportar dados por geração (`json/csv`) | `/ga` | Python |
+| 9 | Criar layout do dashboard React | `/dashboard` | ReactJS |
+|10 | Integrar `service.js` com JSONs do GA | `/dashboard` | fetch/localStorage |
+|11 | Visualizar dados com `chart.jsx` | `/components` | Chart.js |
+|12 | Desenhar rede neural do melhor agente | `/dashboard/side_right.jsx` | Canvas ou SVG |
+|13 | Opcional: conectar `dashboard` com `GA` ao vivo via socket | full stack | WebSocket/REST |
+
+---
+
+### 🧠 Extras para o Futuro
+
+- **Replay de partidas salvas**
+- **Treinamento online via WebWorker/WebSocket**
+- **Troca de arquitetura da rede via config**
+- **Modo multiplayer (duas IAs competindo)**
+- **Salvar/carrear o melhor agente**
 
 ## License
 
