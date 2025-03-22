@@ -1,0 +1,28 @@
+{
+  "name": "poc_genetic_algorithms",
+  "version": "1.0.0",
+  "description": "Proof of concept for genetic algorithms applied to training AI agents to play games",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "genetic-algorithm",
+    "neural-network",
+    "snake-game",
+    "ai",
+    "machine-learning"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chart.js": "^3.7.0",
+    "lodash": "^4.17.21",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.0"
+  }
+}

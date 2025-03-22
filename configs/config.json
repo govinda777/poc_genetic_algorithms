@@ -1,0 +1,29 @@
+{
+  "genetic_algorithm": {
+    "population_size": 100,
+    "generations": 1000,
+    "mutation_rate": 0.1,
+    "crossover_rate": 0.7,
+    "elitism": 0.1,
+    "games_per_agent": 3,
+    "max_steps": 1000,
+    "initial_energy": 100
+  },
+  "neural_network": {
+    "input_size": 24,
+    "hidden_size": 16,
+    "output_size": 4
+  },
+  "game": {
+    "grid_size": 25,
+    "cell_size": 20,
+    "initial_snake_length": 3,
+    "game_speed": 150,
+    "energy_decrease_per_step": 1,
+    "energy_increase_per_food": 50
+  },
+  "training": {
+    "save_interval": 10,
+    "data_dir": "../data"
+  }
+}

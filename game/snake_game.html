@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game - Genetic Algorithm POC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        #game-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        canvas {
+            border: 2px solid #333;
+            background-color: #fff;
+            display: block;
+        }
+        
+        #controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        #game-info {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9e9e9;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        #sensor-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Snake Game - Genetic Algorithm POC</h1>
+    
+    <div id="game-container">
+        <canvas id="game-canvas" width="500" height="500"></canvas>
+        <div id="sensor-display"></div>
+    </div>
+    
+    <div id="controls">
+        <button id="start-btn">Iniciar Jogo</button>
+        <button id="reset-btn">Reiniciar</button>
+        <button id="toggle-sensors-btn">Mostrar/Ocultar Sensores</button>
+        <button id="toggle-ai-btn">Ativar/Desativar IA</button>
+    </div>
+    
+    <div id="game-info">
+        <div class="info-row">
+            <span>Pontuação:</span>
+            <span id="score">0</span>
+        </div>
+        <div class="info-row">
+            <span>Tamanho da Cobra:</span>
+            <span id="snake-size">3</span>
+        </div>
+        <div class="info-row">
+            <span>Energia Restante:</span>
+            <span id="energy">100</span>
+        </div>
+        <div class="info-row">
+            <span>Modo:</span>
+            <span id="game-mode">Manual</span>
+        </div>
+    </div>
+    
+    <script src="snake.js"></script>
+</body>
+</html>

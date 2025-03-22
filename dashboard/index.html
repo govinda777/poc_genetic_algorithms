@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game Genetic Algorithm Dashboard</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- External Dependencies -->
+    <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/chart.js@3.7.0/dist/chart.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <!-- Dashboard Root Element -->
+    <div id="dashboard-root"></div>
+    
+    <!-- Dashboard Scripts -->
+    <script type="text/babel" src="../components/chart.jsx"></script>
+    <script type="text/babel" src="service.js"></script>
+    <script type="text/babel" src="side_left.jsx"></script>
+    <script type="text/babel" src="side_right.jsx"></script>
+    <script type="text/babel" src="footer.jsx"></script>
+    <script type="text/babel" src="core.jsx"></script>
+    <script type="text/babel" src="index.jsx"></script>
+    
+    <!-- For development without build tools -->
+    <script type="text/babel">
+        // This script is only needed for development without a build system
+        // It ensures that all components are loaded before rendering
+        
+        // Check if all required scripts are loaded
+        function checkScriptsLoaded() {
+            return (
+                typeof React !== 'undefined' &&
+                typeof ReactDOM !== 'undefined' &&
+                typeof Chart !== 'undefined' &&
+                typeof Dashboard !== 'undefined'
+            );
+        }
+        
+        // Initialize dashboard when all scripts are loaded
+        function initDashboard() {
+            if (checkScriptsLoaded()) {
+                console.log('All scripts loaded, initializing dashboard');
+                
+                // The Dashboard component will be rendered by the code in index.jsx
+                // This is just a fallback in case the event listener in index.jsx doesn't fire
+                const rootElement = document.getElementById('dashboard-root');
+                if (rootElement && rootElement.childNodes.length === 0) {
+                    ReactDOM.render(React.createElement(Dashboard), rootElement);
+                }
+            } else {
+                console.warn('Some scripts are not loaded yet, retrying in 500ms');
+                setTimeout(initDashboard, 500);
+            }
+        }
+        
+        // Start initialization when the DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDashboard);
+        } else {
+            initDashboard();
+        }
+    </script>
+</body>
+</html>

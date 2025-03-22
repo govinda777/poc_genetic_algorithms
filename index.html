@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game Genetic Algorithm POC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        h1 {
+            color: #2196F3;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        
+        .description {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .cards {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .card {
+            flex: 1;
+            min-width: 300px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            background-color: #2196F3;
+            color: white;
+            padding: 15px 20px;
+        }
+        
+        .card-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .card-footer {
+            padding: 15px 20px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #eee;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #0b7dda;
+        }
+        
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .github-link {
+            color: #2196F3;
+            text-decoration: none;
+        }
+        
+        .github-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Snake Game Genetic Algorithm POC</h1>
+        <div class="subtitle">Prova de Conceito para Algoritmos Genéticos aplicados ao treinamento de AIs em jogos</div>
+    </header>
+    
+    <section class="description">
+        <h2>Sobre o Projeto</h2>
+        <p>
+            Este é um projeto de prova de conceito (POC) para estudar <strong>algoritmos genéticos</strong> aplicados ao treinamento de AIs em jogos. 
+            A ideia central é treinar agentes capazes de jogar (usando as teclas: Cima, Baixo, Esquerda, Direita) através de técnicas evolutivas, 
+            inspiradas no vídeo <a href="https://youtu.be/awz1ghokP3k?si=eEdP3qjcGEfEMdqY" target="_blank">Rede Neural aprendendo a jogar o jogo da cobrinha (SNAKE)</a>.
+        </p>
+        <p>
+            O projeto é dividido em três componentes principais:
+        </p>
+        <ul>
+            <li><strong>Jogo da Cobrinha</strong>: Implementação do clássico jogo Snake em HTML/JavaScript.</li>
+            <li><strong>Algoritmo Genético</strong>: Implementação em Python para treinar redes neurais a jogar o jogo.</li>
+            <li><strong>Dashboard</strong>: Interface para visualizar o progresso do treinamento e os resultados.</li>
+        </ul>
+    </section>
+    
+    <section class="cards">
+        <div class="card">
+            <div class="card-header">
+                <h2>Jogo da Cobrinha</h2>
+            </div>
+            <div class="card-body">
+                <p>Jogue o clássico jogo da cobrinha ou veja a IA treinada em ação. O jogo foi implementado com HTML5 Canvas e JavaScript.</p>
+                <p>Características:</p>
+                <ul>
+                    <li>Controles com as setas do teclado</li>
+                    <li>Modo de jogo manual ou IA</li>
+                    <li>Visualização de sensores da IA</li>
+                    <li>Sistema de pontuação e energia</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="game/snake_game.html" class="btn">Jogar Agora</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Dashboard de Treinamento</h2>
+            </div>
+            <div class="card-body">
+                <p>Visualize o progresso do treinamento da IA com gráficos e estatísticas em tempo real.</p>
+                <p>Características:</p>
+                <ul>
+                    <li>Gráficos de evolução de fitness</li>
+                    <li>Visualização da rede neural</li>
+                    <li>Estatísticas de treinamento</li>
+                    <li>Histórico de sessões</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="dashboard/index.html" class="btn">Abrir Dashboard</a>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <p>
+            &copy; 2025 Snake Game Genetic Algorithm POC. 
+            <a href="https://github.com/seu-usuario/poc_genetic_algorithms" class="github-link" target="_blank">Ver no GitHub</a>
+        </p>
+        <p>
+            Este projeto está licenciado sob a <a href="LICENSE" class="github-link">MIT License</a>.
+        </p>
+    </footer>
+</body>
+</html>
