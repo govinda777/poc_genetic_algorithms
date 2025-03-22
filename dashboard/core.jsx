@@ -6,10 +6,18 @@
 // import Footer from './footer';
 
 // Destructure React hooks from global React
-const { useState, useEffect } = React;
+const { useState, useEffect, useCallback } = React;
 
 // Access service functions from global scope
-const { fetchTrainingSessions, fetchSessionData, connectWebSocket, loadMockData } = window;
+const { 
+    fetchTrainingSessions, 
+    fetchSessionData, 
+    connectWebSocket, 
+    loadMockData,
+    checkTrainingStatus,
+    startPolling,
+    stopPolling
+} = window;
 
 /**
  * Core dashboard component
@@ -24,6 +32,7 @@ const Core = () => {
     const [error, setError] = useState(null);
     const [wsConnection, setWsConnection] = useState(null);
     const [useMockData, setUseMockData] = useState(false);
+    const [isTraining, setIsTraining] = useState(false);
 
     // Load available sessions on component mount
     useEffect(() => {
@@ -47,6 +56,50 @@ const Core = () => {
         loadSessions();
     }, []);
 
+    // Check if training is active on component mount
+    useEffect(() => {
+        const checkTrainingActive = async () => {
+            try {
+                const status = await checkTrainingStatus();
+                setIsTraining(status.active);
+                
+                if (status.active && status.data) {
+                    // Update session data with the latest data
+                    setSessionData(status.data);
+                }
+            } catch (error) {
+                console.error('Error checking training status:', error);
+            }
+        };
+        
+        checkTrainingActive();
+    }, []);
+    
+    // Listen for training updates
+    useEffect(() => {
+        const handleTrainingUpdate = (event) => {
+            const data = event.detail;
+            console.log('Training update received:', data);
+            
+            // Update session data with the latest data
+            setSessionData(data);
+            setIsTraining(true);
+            
+            // Refresh sessions list to include the new session
+            fetchTrainingSessions().then(sessionsData => {
+                setSessions(sessionsData);
+            });
+        };
+        
+        // Add event listener
+        window.addEventListener('training-update', handleTrainingUpdate);
+        
+        // Clean up
+        return () => {
+            window.removeEventListener('training-update', handleTrainingUpdate);
+        };
+    }, []);
+    
     // Load session data when selected session changes
     useEffect(() => {
         if (!selectedSessionId && !useMockData) return;
@@ -128,6 +181,75 @@ const Core = () => {
         setUseMockData(prev => !prev);
     };
 
+    // Start a new training session
+    const handleStartTraining = async (params) => {
+        try {
+            setLoading(true);
+            const response = await window.startTraining(params);
+            
+            if (response.status === 'success') {
+                setIsTraining(true);
+                
+                // Start polling for updates
+                startPolling((data) => {
+                    setSessionData(data);
+                });
+                
+                // Refresh sessions list after a short delay
+                setTimeout(async () => {
+                    const sessionsData = await fetchTrainingSessions();
+                    setSessions(sessionsData);
+                    
+                    // Select the most recent session
+                    if (sessionsData.length > 0) {
+                        setSelectedSessionId(sessionsData[0].session_id);
+                    }
+                    
+                    setLoading(false);
+                }, 2000);
+            } else {
+                setError(`Error starting training: ${response.message || 'Unknown error'}`);
+                setLoading(false);
+            }
+        } catch (error) {
+            console.error('Error starting training:', error);
+            setError(`Error starting training: ${error.message || 'Unknown error'}`);
+            setLoading(false);
+        }
+    };
+    
+    // Stop the current training session
+    const handleStopTraining = async () => {
+        try {
+            setLoading(true);
+            const response = await window.stopTraining();
+            
+            if (response.status === 'success') {
+                setIsTraining(false);
+                stopPolling();
+                
+                // Refresh sessions list and data
+                const sessionsData = await fetchTrainingSessions();
+                setSessions(sessionsData);
+                
+                if (selectedSessionId) {
+                    const data = await fetchSessionData(selectedSessionId);
+                    if (data) {
+                        setSessionData(data);
+                    }
+                }
+            } else {
+                setError(`Error stopping training: ${response.message || 'Unknown error'}`);
+            }
+            
+            setLoading(false);
+        } catch (error) {
+            console.error('Error stopping training:', error);
+            setError(`Error stopping training: ${error.message || 'Unknown error'}`);
+            setLoading(false);
+        }
+    };
+
     // Refresh data
     const refreshData = async () => {
         if (useMockData) {
@@ -174,6 +296,23 @@ const Core = () => {
                     <button onClick={toggleMockData}>
                         {useMockData ? 'Use Real Data' : 'Use Mock Data'}
                     </button>
+                    {isTraining ? (
+                        <button 
+                            className="stop-training-btn"
+                            onClick={handleStopTraining}
+                            disabled={loading}
+                        >
+                            Stop Training
+                        </button>
+                    ) : (
+                        <button 
+                            className="start-training-btn"
+                            onClick={() => window.dispatchEvent(new CustomEvent('show-training-form'))}
+                            disabled={loading}
+                        >
+                            Start Training
+                        </button>
+                    )}
                 </div>
             </header>
 
@@ -196,7 +335,11 @@ const Core = () => {
                                 <SideLeft data={sessionData} />
                                 <SideRight data={sessionData} />
                             </div>
-                            <Footer />
+                            <Footer 
+                                onStartTraining={handleStartTraining}
+                                onStopTraining={handleStopTraining}
+                                isTraining={isTraining}
+                            />
                         </>
                     ) : (
                         <div className="no-data">

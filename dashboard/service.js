@@ -2,8 +2,80 @@
  * Service for fetching genetic algorithm data
  * 
  * This module provides functions to fetch training data from the genetic algorithm,
- * either from local JSON files or via a WebSocket/REST API.
+ * either from local JSON files or via a WebSocket/REST API, and control the training process.
  */
+
+/**
+ * Start a new training session
+ * @param {Object} params - Training parameters
+ * @param {number} [params.epochs=100] - Number of generations to train
+ * @param {number} [params.population_size=100] - Size of the population
+ * @param {number} [params.mutation_rate=0.1] - Mutation rate
+ * @param {number} [params.crossover_rate=0.7] - Crossover rate
+ * @param {number} [params.elitism=0.1] - Elitism rate
+ * @param {number} [params.games_per_agent=3] - Number of games per agent
+ * @returns {Promise<Object>} Response from the server
+ */
+async function startTraining(params = {}) {
+    try {
+        const response = await fetch('/api/train', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(params)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error starting training:', error);
+        throw error;
+    }
+}
+
+/**
+ * Stop the current training session
+ * @returns {Promise<Object>} Response from the server
+ */
+async function stopTraining() {
+    try {
+        const response = await fetch('/api/train/stop', {
+            method: 'POST'
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error stopping training:', error);
+        throw error;
+    }
+}
+
+/**
+ * Check the status of the current training session
+ * @returns {Promise<Object>} Training status and data
+ */
+async function checkTrainingStatus() {
+    try {
+        const response = await fetch('/api/train/status');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error checking training status:', error);
+        return { active: false, data: null };
+    }
+}
 
 /**
  * Fetch the list of available training sessions
@@ -11,7 +83,7 @@
  */
 async function fetchTrainingSessions() {
     try {
-        const response = await fetch('../data/sessions.json');
+        const response = await fetch('/api/sessions');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -38,7 +110,7 @@ async function fetchTrainingSessions() {
  */
 async function fetchSessionData(sessionId) {
     try {
-        const response = await fetch(`../data/session_${sessionId}/dashboard_data.json`);
+        const response = await fetch(`/api/data?session_id=${sessionId}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -58,7 +130,14 @@ async function fetchSessionData(sessionId) {
  */
 async function fetchBestAgent(sessionId) {
     try {
-        const response = await fetch(`../data/session_${sessionId}/latest_best_agent.json`);
+        // First try to get the data from the session data
+        const sessionData = await fetchSessionData(sessionId);
+        if (sessionData && sessionData.best_agent) {
+            return sessionData.best_agent;
+        }
+        
+        // If not available in session data, try direct fetch
+        const response = await fetch(`/api/data/best_agent?session_id=${sessionId}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -76,7 +155,7 @@ async function fetchBestAgent(sessionId) {
  */
 async function fetchGenerationData(sessionId) {
     try {
-        const response = await fetch(`../data/session_${sessionId}/generation_data.json`);
+        const response = await fetch(`/api/data/generations?session_id=${sessionId}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -94,7 +173,7 @@ async function fetchGenerationData(sessionId) {
  */
 async function isSessionActive(sessionId) {
     try {
-        const response = await fetch(`../data/session_${sessionId}/status.json`);
+        const response = await fetch(`/api/train/status?session_id=${sessionId}`);
         if (!response.ok) {
             return false;
         }
@@ -183,6 +262,9 @@ function loadMockData() {
 }
 
 // Expose service functions to global scope
+window.startTraining = startTraining;
+window.stopTraining = stopTraining;
+window.checkTrainingStatus = checkTrainingStatus;
 window.fetchTrainingSessions = fetchTrainingSessions;
 window.fetchSessionData = fetchSessionData;
 window.fetchBestAgent = fetchBestAgent;
@@ -190,3 +272,37 @@ window.fetchGenerationData = fetchGenerationData;
 window.isSessionActive = isSessionActive;
 window.connectWebSocket = connectWebSocket;
 window.loadMockData = loadMockData;
+
+// Poll for updates if training is active
+let pollingInterval = null;
+
+function startPolling(callback, interval = 2000) {
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+    }
+    
+    pollingInterval = setInterval(async () => {
+        try {
+            const status = await checkTrainingStatus();
+            if (status.active && status.data) {
+                callback(status.data);
+            } else if (!status.active) {
+                stopPolling();
+            }
+        } catch (error) {
+            console.error('Error polling for updates:', error);
+        }
+    }, interval);
+    
+    return pollingInterval;
+}
+
+function stopPolling() {
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+    }
+}
+
+window.startPolling = startPolling;
+window.stopPolling = stopPolling;

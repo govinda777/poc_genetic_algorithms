@@ -286,7 +286,7 @@ def train_agent(agent, simulator, max_steps=DEFAULT_MAX_STEPS, games=DEFAULT_GAM
     total_steps = 0
     total_energy = 0
     
-    for _ in range(games):
+    for game_index in range(games):
         # Reset simulator and agent
         simulator.reset()
         agent.reset()
@@ -308,6 +308,7 @@ def train_agent(agent, simulator, max_steps=DEFAULT_MAX_STEPS, games=DEFAULT_GAM
             if game_over:
                 break
         
+        print(f"Game {game_index + 1}/{games}: Score = {simulator.score}, Steps = {simulator.steps}, Energy = {simulator.energy}")
         # Update totals
         total_food += simulator.score
         total_steps += simulator.steps

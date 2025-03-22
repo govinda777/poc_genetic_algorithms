@@ -1,17 +1,22 @@
 // Using global React instead of imports for in-browser Babel compatibility
-// import React, { useRef, useEffect } from 'react';
+// import React, { useRef, useEffect, useState } from 'react';
 
 // Access React hooks from global React
-const { useRef, useEffect } = React;
+const { useRef, useEffect, useState } = React;
 // Access Chart component from global scope
 const Chart = window.ChartComponent;
 
 /**
  * Right side panel component
- * Displays information about the best agent and visualizes its neural network
+ * Displays information about the best agent, visualizes its neural network,
+ * and shows matches being played by agents
  */
 const SideRight = ({ data }) => {
-    const canvasRef = useRef(null);
+    const neuralNetworkCanvasRef = useRef(null);
+    const matchCanvasRef = useRef(null);
+    const [activeTab, setActiveTab] = useState('best-agent');
+    const [matches, setMatches] = useState([]);
+    const [currentMatch, setCurrentMatch] = useState(null);
     
     if (!data || !data.current || !data.best_agent) {
         return <div className="dashboard-side-right">Loading data...</div>;
@@ -19,11 +24,142 @@ const SideRight = ({ data }) => {
     
     const { current, best_agent } = data;
     
+    // Simulate matches being played by agents
+    useEffect(() => {
+        // This would be replaced by real match data from the backend
+        const simulateMatches = () => {
+            // Generate random match data for demonstration
+            const newMatch = {
+                id: Date.now(),
+                agent: `Agent-${Math.floor(Math.random() * current.alive_agents)}`,
+                score: Math.floor(Math.random() * 10),
+                steps: Math.floor(Math.random() * 100) + 50,
+                energy: Math.floor(Math.random() * 50),
+                timestamp: new Date().toLocaleTimeString(),
+                state: {
+                    snake: [
+                        { x: 12, y: 12 },
+                        { x: 11, y: 12 },
+                        { x: 10, y: 12 }
+                    ],
+                    food: { x: 15, y: 12 },
+                    direction: { x: 1, y: 0 }
+                }
+            };
+            
+            setCurrentMatch(newMatch);
+            setMatches(prev => [newMatch, ...prev].slice(0, 10)); // Keep only the 10 most recent matches
+            
+            // Update match state (move snake)
+            if (currentMatch) {
+                const updatedMatch = { ...currentMatch };
+                const head = { ...updatedMatch.state.snake[0] };
+                const food = updatedMatch.state.food;
+                const direction = updatedMatch.state.direction;
+                
+                // Move head in current direction
+                head.x += direction.x;
+                head.y += direction.y;
+                
+                // Check if snake ate food
+                if (head.x === food.x && head.y === food.y) {
+                    updatedMatch.score++;
+                    updatedMatch.energy += 50;
+                    
+                    // Generate new food
+                    updatedMatch.state.food = {
+                        x: Math.floor(Math.random() * 25),
+                        y: Math.floor(Math.random() * 25)
+                    };
+                } else {
+                    // Remove tail
+                    updatedMatch.state.snake.pop();
+                    updatedMatch.energy--;
+                }
+                
+                // Add new head
+                updatedMatch.state.snake.unshift(head);
+                updatedMatch.steps++;
+                
+                setCurrentMatch(updatedMatch);
+            }
+            
+            // Draw current match
+            drawMatch();
+        };
+        
+        // Simulate matches every 1 second
+        const interval = setInterval(simulateMatches, 1000);
+        
+        return () => clearInterval(interval);
+    }, [current, currentMatch]);
+    
+    // Draw the current match on the canvas
+    const drawMatch = () => {
+        if (!matchCanvasRef.current || !currentMatch) return;
+        
+        const canvas = matchCanvasRef.current;
+        const ctx = canvas.getContext('2d');
+        const cellSize = 10; // Smaller cells for the match visualization
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw grid
+        ctx.strokeStyle = '#ddd';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i <= 25; i++) {
+            // Vertical lines
+            ctx.beginPath();
+            ctx.moveTo(i * cellSize, 0);
+            ctx.lineTo(i * cellSize, 25 * cellSize);
+            ctx.stroke();
+            
+            // Horizontal lines
+            ctx.beginPath();
+            ctx.moveTo(0, i * cellSize);
+            ctx.lineTo(25 * cellSize, i * cellSize);
+            ctx.stroke();
+        }
+        
+        // Draw snake
+        ctx.fillStyle = '#4CAF50';
+        for (let i = 1; i < currentMatch.state.snake.length; i++) {
+            ctx.fillRect(
+                currentMatch.state.snake[i].x * cellSize,
+                currentMatch.state.snake[i].y * cellSize,
+                cellSize,
+                cellSize
+            );
+        }
+        
+        // Draw head
+        ctx.fillStyle = '#388E3C';
+        ctx.fillRect(
+            currentMatch.state.snake[0].x * cellSize,
+            currentMatch.state.snake[0].y * cellSize,
+            cellSize,
+            cellSize
+        );
+        
+        // Draw food
+        ctx.fillStyle = '#F44336';
+        ctx.beginPath();
+        ctx.arc(
+            currentMatch.state.food.x * cellSize + cellSize / 2,
+            currentMatch.state.food.y * cellSize + cellSize / 2,
+            cellSize / 2,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+    };
+    
     // Draw neural network visualization when component mounts or data changes
     useEffect(() => {
-        if (!canvasRef.current || !best_agent || !best_agent.weights) return;
+        if (!neuralNetworkCanvasRef.current || !best_agent || !best_agent.weights) return;
         
-        const canvas = canvasRef.current;
+        const canvas = neuralNetworkCanvasRef.current;
         const ctx = canvas.getContext('2d');
         
         // Clear canvas
@@ -249,67 +385,171 @@ const SideRight = ({ data }) => {
     
     return (
         <div className="dashboard-side-right">
-            <h2>Best Agent</h2>
-            
-            <div className="agent-stats">
-                <div className="stat-card">
-                    <h3>Fitness</h3>
-                    <div className="stat-value">{best_agent.fitness.toFixed(2)}</div>
-                </div>
-                
-                <div className="stat-card">
-                    <h3>Food Eaten</h3>
-                    <div className="stat-value">{best_agent.food_eaten}</div>
-                </div>
-                
-                <div className="stat-card">
-                    <h3>Snake Size</h3>
-                    <div className="stat-value">{best_agent.food_eaten + 3}</div>
-                </div>
-                
-                <div className="stat-card">
-                    <h3>Steps Taken</h3>
-                    <div className="stat-value">{best_agent.steps_taken}</div>
-                </div>
+            <div className="tabs">
+                <button 
+                    className={activeTab === 'best-agent' ? 'active' : ''} 
+                    onClick={() => setActiveTab('best-agent')}
+                >
+                    Best Agent
+                </button>
+                <button 
+                    className={activeTab === 'matches' ? 'active' : ''} 
+                    onClick={() => setActiveTab('matches')}
+                >
+                    Agent Matches
+                </button>
             </div>
             
-            <div className="neural-network-container">
-                <h3>Neural Network Visualization</h3>
-                <canvas 
-                    ref={canvasRef} 
-                    width={600} 
-                    height={500} 
-                    className="neural-network-canvas"
-                />
-                
-                <div className="network-legend">
-                    <div className="legend-item">
-                        <div className="legend-color" style={{ backgroundColor: '#2196F3' }}></div>
-                        <span>Input Neurons (24): 8 directions × 3 inputs (distance, food, danger)</span>
+            {activeTab === 'best-agent' && (
+                <div className="tab-content">
+                    <h2>Best Agent</h2>
+                    
+                    <div className="agent-stats">
+                        <div className="stat-card">
+                            <h3>Fitness</h3>
+                            <div className="stat-value">{best_agent.fitness.toFixed(2)}</div>
+                        </div>
+                        
+                        <div className="stat-card">
+                            <h3>Food Eaten</h3>
+                            <div className="stat-value">{best_agent.food_eaten}</div>
+                        </div>
+                        
+                        <div className="stat-card">
+                            <h3>Snake Size</h3>
+                            <div className="stat-value">{best_agent.food_eaten + 3}</div>
+                        </div>
+                        
+                        <div className="stat-card">
+                            <h3>Steps Taken</h3>
+                            <div className="stat-value">{best_agent.steps_taken}</div>
+                        </div>
                     </div>
-                    <div className="legend-item">
-                        <div className="legend-color" style={{ backgroundColor: '#9C27B0' }}></div>
-                        <span>Hidden Neurons (16)</span>
+                    
+                    <div className="neural-network-container">
+                        <h3>Neural Network Visualization</h3>
+                        <canvas 
+                            ref={neuralNetworkCanvasRef} 
+                            width={600} 
+                            height={500} 
+                            className="neural-network-canvas"
+                        />
+                        
+                        <div className="network-legend">
+                            <div className="legend-item">
+                                <div className="legend-color" style={{ backgroundColor: '#2196F3' }}></div>
+                                <span>Input Neurons (24): 8 directions × 3 inputs (distance, food, danger)</span>
+                            </div>
+                            <div className="legend-item">
+                                <div className="legend-color" style={{ backgroundColor: '#9C27B0' }}></div>
+                                <span>Hidden Neurons (16)</span>
+                            </div>
+                            <div className="legend-item">
+                                <div className="legend-color" style={{ backgroundColor: '#4CAF50' }}></div>
+                                <span>Output Neurons (4): Up, Down, Left, Right</span>
+                            </div>
+                            <div className="legend-item">
+                                <div className="legend-color" style={{ 
+                                    background: 'linear-gradient(to right, rgba(255,0,0,0.7), rgba(0,128,0,0.7))' 
+                                }}></div>
+                                <span>Connections: Red (negative weight), Green (positive weight)</span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="legend-item">
-                        <div className="legend-color" style={{ backgroundColor: '#4CAF50' }}></div>
-                        <span>Output Neurons (4): Up, Down, Left, Right</span>
-                    </div>
-                    <div className="legend-item">
-                        <div className="legend-color" style={{ 
-                            background: 'linear-gradient(to right, rgba(255,0,0,0.7), rgba(0,128,0,0.7))' 
-                        }}></div>
-                        <span>Connections: Red (negative weight), Green (positive weight)</span>
+                    
+                    <div className="agent-info">
+                        <h3>Agent Information</h3>
+                        <p>Generation: {best_agent.generation}</p>
+                        <p>Total Weights: {best_agent.weights.length}</p>
+                        <p>Network Architecture: 24-16-4</p>
                     </div>
                 </div>
-            </div>
+            )}
             
-            <div className="agent-info">
-                <h3>Agent Information</h3>
-                <p>Generation: {best_agent.generation}</p>
-                <p>Total Weights: {best_agent.weights.length}</p>
-                <p>Network Architecture: 24-16-4</p>
-            </div>
+            {activeTab === 'matches' && (
+                <div className="tab-content">
+                    <h2>Agent Matches</h2>
+                    
+                    <div className="matches-container">
+                        <div className="current-match">
+                            <h3>Current Match</h3>
+                            <canvas 
+                                ref={matchCanvasRef} 
+                                width={250} 
+                                height={250} 
+                                className="match-canvas"
+                            />
+                            
+                            {currentMatch && (
+                                <div className="match-stats">
+                                    <p><strong>Agent:</strong> {currentMatch.agent}</p>
+                                    <p><strong>Score:</strong> {currentMatch.score}</p>
+                                    <p><strong>Steps:</strong> {currentMatch.steps}</p>
+                                    <p><strong>Energy:</strong> {currentMatch.energy}</p>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div className="match-list">
+                            <h3>Recent Matches</h3>
+                            <table className="matches-table">
+                                <thead>
+                                    <tr>
+                                        <th>Agent</th>
+                                        <th>Score</th>
+                                        <th>Steps</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {matches.map(match => (
+                                        <tr key={match.id}>
+                                            <td>{match.agent}</td>
+                                            <td>{match.score}</td>
+                                            <td>{match.steps}</td>
+                                            <td>{match.timestamp}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div className="match-statistics">
+                        <h3>Match Statistics</h3>
+                        <div className="stat-cards">
+                            <div className="stat-card">
+                                <h4>Total Matches</h4>
+                                <div className="stat-value">{matches.length}</div>
+                            </div>
+                            <div className="stat-card">
+                                <h4>Avg Score</h4>
+                                <div className="stat-value">
+                                    {matches.length > 0 
+                                        ? (matches.reduce((sum, match) => sum + match.score, 0) / matches.length).toFixed(1) 
+                                        : '0.0'}
+                                </div>
+                            </div>
+                            <div className="stat-card">
+                                <h4>Avg Steps</h4>
+                                <div className="stat-value">
+                                    {matches.length > 0 
+                                        ? Math.round(matches.reduce((sum, match) => sum + match.steps, 0) / matches.length) 
+                                        : '0'}
+                                </div>
+                            </div>
+                            <div className="stat-card">
+                                <h4>Best Score</h4>
+                                <div className="stat-value">
+                                    {matches.length > 0 
+                                        ? Math.max(...matches.map(match => match.score)) 
+                                        : '0'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

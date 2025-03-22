@@ -47,6 +47,91 @@
                 weights: Array.from({ length: 500 }, () => Math.random() * 2 - 1)
             }
         };
+        
+        // Service functions for API interaction
+        window.startTraining = async (params = {}) => {
+            try {
+                const response = await fetch('/api/train', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(params)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error starting training:', error);
+                throw error;
+            }
+        };
+        
+        window.stopTraining = async () => {
+            try {
+                const response = await fetch('/api/train/stop', {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error stopping training:', error);
+                throw error;
+            }
+        };
+        
+        window.checkTrainingStatus = async () => {
+            try {
+                const response = await fetch('/api/train/status');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error checking training status:', error);
+                return { active: false, data: null };
+            }
+        };
+        
+        // Polling mechanism for real-time updates
+        let pollingInterval = null;
+        
+        window.startPolling = (callback, interval = 2000) => {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+            
+            pollingInterval = setInterval(async () => {
+                try {
+                    const status = await window.checkTrainingStatus();
+                    if (status.active && status.data) {
+                        callback(status.data);
+                    } else if (!status.active) {
+                        window.stopPolling();
+                    }
+                } catch (error) {
+                    console.error('Error polling for updates:', error);
+                }
+            }, interval);
+            
+            return pollingInterval;
+        };
+        
+        window.stopPolling = () => {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        };
     </script>
     
     <!-- Simple Dashboard Implementation -->
@@ -65,14 +150,209 @@
             );
         };
         
-        // Footer Component
-        const Footer = () => {
+        // Footer Component with Training Controls
+        const Footer = ({ isTraining, onStartTraining, onStopTraining }) => {
+            const [showTrainingForm, setShowTrainingForm] = React.useState(false);
+            const [statusMessage, setStatusMessage] = React.useState('');
+            const [trainingParams, setTrainingParams] = React.useState({
+                epochs: 100,
+                population_size: 100,
+                mutation_rate: 0.1,
+                crossover_rate: 0.7,
+                elitism: 0.1,
+                games_per_agent: 3
+            });
+            
+            // Handle form input changes
+            const handleInputChange = (e) => {
+                const { name, value } = e.target;
+                setTrainingParams({
+                    ...trainingParams,
+                    [name]: name === 'epochs' || name === 'population_size' || name === 'games_per_agent' 
+                        ? parseInt(value, 10) 
+                        : parseFloat(value)
+                });
+            };
+            
+            // Handle start training button click
+            const handleStartTraining = async () => {
+                try {
+                    setStatusMessage('Starting training...');
+                    const response = await window.startTraining(trainingParams);
+                    
+                    if (response.status === 'success') {
+                        setStatusMessage('Training started successfully');
+                        setShowTrainingForm(false);
+                        if (onStartTraining) onStartTraining(trainingParams);
+                    } else {
+                        setStatusMessage(`Error: ${response.message || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error starting training:', error);
+                    setStatusMessage(`Error: ${error.message || 'Unknown error'}`);
+                }
+            };
+            
+            // Handle stop training button click
+            const handleStopTraining = async () => {
+                try {
+                    setStatusMessage('Stopping training...');
+                    const response = await window.stopTraining();
+                    
+                    if (response.status === 'success') {
+                        setStatusMessage('Training stopped successfully');
+                        if (onStopTraining) onStopTraining();
+                    } else {
+                        setStatusMessage(`Error: ${response.message || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error stopping training:', error);
+                    setStatusMessage(`Error: ${error.message || 'Unknown error'}`);
+                }
+            };
+            
+            // Listen for show-training-form event
+            React.useEffect(() => {
+                const handleShowTrainingForm = () => {
+                    setShowTrainingForm(true);
+                };
+                
+                window.addEventListener('show-training-form', handleShowTrainingForm);
+                
+                return () => {
+                    window.removeEventListener('show-training-form', handleShowTrainingForm);
+                };
+            }, []);
+            
             return (
                 <footer className="dashboard-footer">
                     <div className="footer-content">
                         <div className="footer-section">
                             <h3>Snake Game Genetic Algorithm POC</h3>
                             <p>A proof of concept for studying genetic algorithms</p>
+                        </div>
+                        
+                        <div className="footer-section training-controls">
+                            <h3>Training Controls</h3>
+                            
+                            {statusMessage && (
+                                <div className="status-message">
+                                    {statusMessage}
+                                </div>
+                            )}
+                            
+                            <div className="training-buttons">
+                                {!isTraining ? (
+                                    <>
+                                        <button 
+                                            className="start-training-btn"
+                                            onClick={() => setShowTrainingForm(!showTrainingForm)}
+                                        >
+                                            {showTrainingForm ? 'Hide Form' : 'Start Training'}
+                                        </button>
+                                        
+                                        {showTrainingForm && (
+                                            <div className="training-form">
+                                                <h4>Training Parameters</h4>
+                                                <div className="form-group">
+                                                    <label htmlFor="epochs">Generations:</label>
+                                                    <input 
+                                                        type="number" 
+                                                        id="epochs" 
+                                                        name="epochs"
+                                                        value={trainingParams.epochs}
+                                                        onChange={handleInputChange}
+                                                        min="1"
+                                                        max="10000"
+                                                    />
+                                                </div>
+                                                
+                                                <div className="form-group">
+                                                    <label htmlFor="population_size">Population Size:</label>
+                                                    <input 
+                                                        type="number" 
+                                                        id="population_size" 
+                                                        name="population_size"
+                                                        value={trainingParams.population_size}
+                                                        onChange={handleInputChange}
+                                                        min="10"
+                                                        max="1000"
+                                                    />
+                                                </div>
+                                                
+                                                <div className="form-group">
+                                                    <label htmlFor="mutation_rate">Mutation Rate:</label>
+                                                    <input 
+                                                        type="number" 
+                                                        id="mutation_rate" 
+                                                        name="mutation_rate"
+                                                        value={trainingParams.mutation_rate}
+                                                        onChange={handleInputChange}
+                                                        min="0"
+                                                        max="1"
+                                                        step="0.01"
+                                                    />
+                                                </div>
+                                                
+                                                <div className="form-group">
+                                                    <label htmlFor="crossover_rate">Crossover Rate:</label>
+                                                    <input 
+                                                        type="number" 
+                                                        id="crossover_rate" 
+                                                        name="crossover_rate"
+                                                        value={trainingParams.crossover_rate}
+                                                        onChange={handleInputChange}
+                                                        min="0"
+                                                        max="1"
+                                                        step="0.01"
+                                                    />
+                                                </div>
+                                                
+                                                <div className="form-group">
+                                                    <label htmlFor="elitism">Elitism:</label>
+                                                    <input 
+                                                        type="number" 
+                                                        id="elitism" 
+                                                        name="elitism"
+                                                        value={trainingParams.elitism}
+                                                        onChange={handleInputChange}
+                                                        min="0"
+                                                        max="1"
+                                                        step="0.01"
+                                                    />
+                                                </div>
+                                                
+                                                <div className="form-group">
+                                                    <label htmlFor="games_per_agent">Games per Agent:</label>
+                                                    <input 
+                                                        type="number" 
+                                                        id="games_per_agent" 
+                                                        name="games_per_agent"
+                                                        value={trainingParams.games_per_agent}
+                                                        onChange={handleInputChange}
+                                                        min="1"
+                                                        max="10"
+                                                    />
+                                                </div>
+                                                
+                                                <button 
+                                                    className="confirm-training-btn"
+                                                    onClick={handleStartTraining}
+                                                >
+                                                    Start Training
+                                                </button>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <button 
+                                        className="stop-training-btn"
+                                        onClick={handleStopTraining}
+                                    >
+                                        Stop Training
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <div className="footer-bottom">
@@ -157,23 +437,147 @@
         // Core Component
         const Core = () => {
             const [data, setData] = React.useState(window.mockData);
+            const [loading, setLoading] = React.useState(false);
+            const [error, setError] = React.useState(null);
+            const [isTraining, setIsTraining] = React.useState(false);
+            
+            // Check if training is active on component mount
+            React.useEffect(() => {
+                const checkTrainingActive = async () => {
+                    try {
+                        const status = await window.checkTrainingStatus();
+                        setIsTraining(status.active);
+                        
+                        if (status.active && status.data) {
+                            // Update data with the latest data
+                            setData(status.data);
+                        }
+                    } catch (error) {
+                        console.error('Error checking training status:', error);
+                    }
+                };
+                
+                checkTrainingActive();
+            }, []);
+            
+            // Listen for training updates
+            React.useEffect(() => {
+                const handleTrainingUpdate = (event) => {
+                    const updateData = event.detail;
+                    console.log('Training update received:', updateData);
+                    
+                    // Update data with the latest data
+                    setData(updateData);
+                };
+                
+                // Add event listener
+                window.addEventListener('training-update', handleTrainingUpdate);
+                
+                // Clean up
+                return () => {
+                    window.removeEventListener('training-update', handleTrainingUpdate);
+                };
+            }, []);
+            
+            // Start a new training session
+            const handleStartTraining = async (params) => {
+                try {
+                    setLoading(true);
+                    setIsTraining(true);
+                    
+                    // Start polling for updates
+                    window.startPolling((updateData) => {
+                        setData(updateData);
+                    });
+                    
+                    setLoading(false);
+                } catch (error) {
+                    console.error('Error starting training:', error);
+                    setError(`Error starting training: ${error.message || 'Unknown error'}`);
+                    setLoading(false);
+                }
+            };
+            
+            // Stop the current training session
+            const handleStopTraining = async () => {
+                try {
+                    setLoading(true);
+                    setIsTraining(false);
+                    window.stopPolling();
+                    setLoading(false);
+                } catch (error) {
+                    console.error('Error stopping training:', error);
+                    setError(`Error stopping training: ${error.message || 'Unknown error'}`);
+                    setLoading(false);
+                }
+            };
+            
+            // Toggle between real and mock data
+            const toggleMockData = () => {
+                if (data === window.mockData) {
+                    // Try to fetch real data
+                    window.checkTrainingStatus().then(status => {
+                        if (status.data) {
+                            setData(status.data);
+                        }
+                    });
+                } else {
+                    setData(window.mockData);
+                }
+            };
             
             return (
                 <div className="dashboard">
                     <header className="dashboard-header">
                         <h1>Snake Game Genetic Algorithm Dashboard</h1>
                         <div className="controls">
-                            <button>Use Mock Data</button>
+                            <button onClick={toggleMockData}>
+                                Use Mock Data
+                            </button>
+                            {isTraining ? (
+                                <button 
+                                    className="stop-training-btn"
+                                    onClick={handleStopTraining}
+                                    disabled={loading}
+                                >
+                                    Stop Training
+                                </button>
+                            ) : (
+                                <button 
+                                    className="start-training-btn"
+                                    onClick={() => window.dispatchEvent(new CustomEvent('show-training-form'))}
+                                    disabled={loading}
+                                >
+                                    Start Training
+                                </button>
+                            )}
                         </div>
                     </header>
                     
-                    <div className="dashboard-content">
-                        <div className="panels">
-                            <SideLeft data={data} />
-                            <SideRight data={data} />
+                    {error && (
+                        <div className="error-message">
+                            <p>{error}</p>
+                            <button onClick={() => setError(null)}>Dismiss</button>
                         </div>
-                        <Footer />
-                    </div>
+                    )}
+                    
+                    {loading ? (
+                        <div className="loading">
+                            <p>Loading data...</p>
+                        </div>
+                    ) : (
+                        <div className="dashboard-content">
+                            <div className="panels">
+                                <SideLeft data={data} />
+                                <SideRight data={data} />
+                            </div>
+                            <Footer 
+                                isTraining={isTraining}
+                                onStartTraining={handleStartTraining}
+                                onStopTraining={handleStopTraining}
+                            />
+                        </div>
+                    )}
                 </div>
             );
         };

@@ -7,10 +7,16 @@ generations and provides functions to save this data for visualization in the da
 """
 
 import json
+import threading
 import os
 import csv
 import time
 from datetime import datetime
+
+# Global variable to store the latest training data
+_latest_training_data = None
+# Lock for thread-safe access to the latest training data
+_data_lock = threading.Lock()
 
 class TrainingData:
     """
@@ -35,6 +41,16 @@ class TrainingData:
         self.generation_data = []
         self.best_agents = []
         self.start_time = time.time()
+        
+        # Set this instance as the latest training data
+        global _latest_training_data
+        with _data_lock:
+            _latest_training_data = self
+            
+        # Save status file to indicate active training
+        status_file = os.path.join(self.session_dir, 'status.json')
+        with open(status_file, 'w') as f:
+            json.dump({'active': True, 'last_update': time.time()}, f)
     
     def record_generation(self, generation, population, best_fitness, diversity):
         """
@@ -94,6 +110,9 @@ class TrainingData:
         # Save data periodically
         if generation % 10 == 0:
             self.save_training_data()
+            
+        # Update dashboard data
+        self.export_for_dashboard()
     
     def save_training_data(self):
         """
@@ -122,6 +141,11 @@ class TrainingData:
             latest_best_file = os.path.join(self.session_dir, 'latest_best_agent.json')
             with open(latest_best_file, 'w') as f:
                 json.dump(latest_best, f, indent=2)
+                
+        # Update status file
+        status_file = os.path.join(self.session_dir, 'status.json')
+        with open(status_file, 'w') as f:
+            json.dump({'active': True, 'last_update': time.time()}, f)
     
     def save_training_session(self):
         """
@@ -173,6 +197,11 @@ class TrainingData:
         # Save updated sessions
         with open(summary_file, 'w') as f:
             json.dump(sessions, f, indent=2)
+            
+        # Update status file to indicate training is complete
+        status_file = os.path.join(self.session_dir, 'status.json')
+        with open(status_file, 'w') as f:
+            json.dump({'active': False, 'last_update': time.time()}, f)
         
         return summary_file
     
@@ -275,3 +304,51 @@ def list_training_sessions(data_dir='../data'):
             return json.load(f)
     
     return []
+
+
+def get_latest_data():
+    """
+    Get the latest training data for the API.
+    
+    Returns:
+        dict: Latest dashboard data, or None if no training data is available.
+    """
+    global _latest_training_data
+    with _data_lock:
+        if _latest_training_data is None:
+            return None
+        
+        # Return the dashboard data for the latest training session
+        return _latest_training_data.export_for_dashboard()
+
+
+def is_training_active(session_id=None, data_dir='../data'):
+    """
+    Check if a training session is active.
+    
+    Args:
+        session_id (str, optional): ID of the session to check. If None, checks the latest session.
+        data_dir (str): Directory containing data files.
+        
+    Returns:
+        bool: True if the session is active, False otherwise.
+    """
+    if session_id is None:
+        global _latest_training_data
+        with _data_lock:
+            if _latest_training_data is None:
+                return False
+            session_id = _latest_training_data.session_id
+    
+    session_dir = os.path.join(data_dir, f'session_{session_id}')
+    status_file = os.path.join(session_dir, 'status.json')
+    
+    if os.path.exists(status_file):
+        try:
+            with open(status_file, 'r') as f:
+                status = json.load(f)
+                return status.get('active', False)
+        except (json.JSONDecodeError, IOError):
+            return False
+    
+    return False
