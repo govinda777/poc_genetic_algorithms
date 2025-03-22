@@ -1,118 +1,289 @@
+<!-- open game/snake_game.html -->
+
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game - Genetic Algorithm POC</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 20px;
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-        
-        #game-container {
-            position: relative;
-            margin-bottom: 20px;
-        }
-        
-        canvas {
-            border: 2px solid #333;
-            background-color: #fff;
-            display: block;
-        }
-        
-        #controls {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        button {
-            padding: 8px 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        button:hover {
-            background-color: #45a049;
-        }
-        
-        #game-info {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #e9e9e9;
-            border-radius: 4px;
-            width: 100%;
-            max-width: 500px;
-        }
-        
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-        
-        #sensor-display {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(255, 255, 255, 0.7);
-            padding: 5px;
-            border-radius: 4px;
-            font-size: 12px;
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Jogo da Cobrinha</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    
+    #game-container {
+      position: relative;
+    }
+    
+    #game-board {
+      border: 2px solid #2c3e50;
+      background-color: #ecf0f1;
+    }
+    
+    #score {
+      margin-top: 20px;
+      font-size: 24px;
+      color: #2c3e50;
+    }
+    
+    #game-over {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      display: none;
+    }
+    
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    button:hover {
+      background-color: #2980b9;
+    }
+  </style>
 </head>
 <body>
-    <h1>Snake Game - Genetic Algorithm POC</h1>
-    
-    <div id="game-container">
-        <canvas id="game-canvas" width="500" height="500"></canvas>
-        <div id="sensor-display"></div>
+  <h1>Jogo da Cobrinha</h1>
+  <div id="game-container">
+    <canvas id="game-board" width="400" height="400"></canvas>
+    <div id="game-over">
+      <h2>Fim de Jogo!</h2>
+      <p id="final-score">Pontuação: 0</p>
+      <button id="restart-button">Jogar Novamente</button>
     </div>
+  </div>
+  <div id="score">Pontuação: 0</div>
+
+  <script>
+    // Configurações do jogo
+    const canvas = document.getElementById('game-board');
+    const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('score');
+    const gameOverScreen = document.getElementById('game-over');
+    const finalScoreDisplay = document.getElementById('final-score');
+    const restartButton = document.getElementById('restart-button');
     
-    <div id="controls">
-        <button id="start-btn">Iniciar Jogo</button>
-        <button id="reset-btn">Reiniciar</button>
-        <button id="toggle-sensors-btn">Mostrar/Ocultar Sensores</button>
-        <button id="toggle-ai-btn">Ativar/Desativar IA</button>
-    </div>
+    const gridSize = 20;
+    const boardWidth = canvas.width;
+    const boardHeight = canvas.height;
     
-    <div id="game-info">
-        <div class="info-row">
-            <span>Pontuação:</span>
-            <span id="score">0</span>
-        </div>
-        <div class="info-row">
-            <span>Tamanho da Cobra:</span>
-            <span id="snake-size">3</span>
-        </div>
-        <div class="info-row">
-            <span>Energia Restante:</span>
-            <span id="energy">100</span>
-        </div>
-        <div class="info-row">
-            <span>Modo:</span>
-            <span id="game-mode">Manual</span>
-        </div>
-    </div>
+    let snake = [];
+    let food = {};
+    let direction = 'right';
+    let nextDirection = 'right';
+    let score = 0;
+    let gameSpeed = 130;
+    let gameLoop;
+    let gameRunning = false;
     
-    <script src="snake.js"></script>
+    // Inicializar o jogo
+    function initGame() {
+      // Reiniciar variáveis
+      snake = [
+        {x: 5 * gridSize, y: 5 * gridSize},
+        {x: 4 * gridSize, y: 5 * gridSize},
+        {x: 3 * gridSize, y: 5 * gridSize}
+      ];
+      
+      direction = 'right';
+      nextDirection = 'right';
+      score = 0;
+      gameSpeed = 130;
+      
+      // Atualizar pontuação
+      updateScore();
+      
+      // Gerar comida
+      generateFood();
+      
+      // Esconder tela de game over
+      gameOverScreen.style.display = 'none';
+      
+      // Iniciar o loop do jogo
+      if (gameLoop) clearInterval(gameLoop);
+      gameRunning = true;
+      gameLoop = setInterval(gameStep, gameSpeed);
+    }
+    
+    // Gerar comida em posição aleatória
+    function generateFood() {
+      const maxX = boardWidth / gridSize - 1;
+      const maxY = boardHeight / gridSize - 1;
+      
+      let foodPosition;
+      let foodOnSnake;
+      
+      do {
+        foodPosition = {
+          x: Math.floor(Math.random() * maxX) * gridSize,
+          y: Math.floor(Math.random() * maxY) * gridSize
+        };
+        
+        foodOnSnake = snake.some(segment => 
+          segment.x === foodPosition.x && segment.y === foodPosition.y
+        );
+      } while (foodOnSnake);
+      
+      food = foodPosition;
+    }
+    
+    // Atualizar pontuação
+    function updateScore() {
+      scoreDisplay.textContent = `Pontuação: ${score}`;
+    }
+    
+    // Passo do jogo
+    function gameStep() {
+      if (!gameRunning) return;
+      
+      // Atualizar direção
+      direction = nextDirection;
+      
+      // Calcular nova posição da cabeça
+      const head = {x: snake[0].x, y: snake[0].y};
+      
+      switch (direction) {
+        case 'up':
+          head.y -= gridSize;
+          break;
+        case 'down':
+          head.y += gridSize;
+          break;
+        case 'left':
+          head.x -= gridSize;
+          break;
+        case 'right':
+          head.x += gridSize;
+          break;
+      }
+      
+      // Verificar colisão com paredes
+      if (head.x < 0 || head.x >= boardWidth || head.y < 0 || head.y >= boardHeight) {
+        gameOver();
+        return;
+      }
+      
+      // Verificar colisão com o próprio corpo
+      for (let i = 0; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) {
+          gameOver();
+          return;
+        }
+      }
+      
+      // Verificar se a cobra comeu a comida
+      const ateFood = head.x === food.x && head.y === food.y;
+      
+      // Adicionar nova cabeça
+      snake.unshift(head);
+      
+      // Se comeu comida, aumentar pontuação e gerar nova comida
+      if (ateFood) {
+        score += 10;
+        updateScore();
+        generateFood();
+        
+        // Aumentar velocidade a cada 50 pontos
+        if (score % 50 === 0 && gameSpeed > 50) {
+          gameSpeed -= 10;
+          clearInterval(gameLoop);
+          gameLoop = setInterval(gameStep, gameSpeed);
+        }
+      } else {
+        // Se não comeu, remover último segmento
+        snake.pop();
+      }
+      
+      // Desenhar o jogo
+      drawGame();
+    }
+    
+    // Desenhar o jogo
+    function drawGame() {
+      // Limpar o canvas
+      ctx.clearRect(0, 0, boardWidth, boardHeight);
+      
+      // Desenhar a cobra
+      ctx.fillStyle = '#2ecc71';
+      snake.forEach((segment, index) => {
+        if (index === 0) {
+          ctx.fillStyle = '#27ae60'; // Cabeça com cor diferente
+        } else {
+          ctx.fillStyle = '#2ecc71';
+        }
+        ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+        
+        // Bordas para melhor visual
+        ctx.strokeStyle = '#27ae60';
+        ctx.strokeRect(segment.x, segment.y, gridSize, gridSize);
+      });
+      
+      // Desenhar a comida
+      ctx.fillStyle = '#e74c3c';
+      ctx.beginPath();
+      ctx.arc(food.x + gridSize/2, food.y + gridSize/2, gridSize/2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    // Game over
+    function gameOver() {
+      gameRunning = false;
+      clearInterval(gameLoop);
+      
+      finalScoreDisplay.textContent = `Pontuação: ${score}`;
+      gameOverScreen.style.display = 'block';
+    }
+    
+    // Controles
+    document.addEventListener('keydown', (event) => {
+      const key = event.key;
+      
+      // Evitar mudança de 180 graus
+      switch (key) {
+        case 'ArrowUp':
+          if (direction !== 'down') nextDirection = 'up';
+          break;
+        case 'ArrowDown':
+          if (direction !== 'up') nextDirection = 'down';
+          break;
+        case 'ArrowLeft':
+          if (direction !== 'right') nextDirection = 'left';
+          break;
+        case 'ArrowRight':
+          if (direction !== 'left') nextDirection = 'right';
+          break;
+      }
+    });
+    
+    // Botão de reiniciar
+    restartButton.addEventListener('click', initGame);
+    
+    // Iniciar o jogo
+    initGame();
+  </script>
 </body>
 </html>
