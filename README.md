@@ -2,37 +2,19 @@
 
 Este é um projeto de prova de conceito (POC) para estudar **algoritmos genéticos** aplicados ao treinamento de AIs em jogos. A ideia central é treinar agentes capazes de jogar (usando as teclas: Cima, Baixo, Esquerda, Direita) através de técnicas evolutivas, inspiradas no vídeo [Rede Neural aprendendo a jogar o jogo da cobrinha (SNAKE)](https://youtu.be/awz1ghokP3k?si=eEdP3qjcGEfEMdqY).
 
-## How to Config Env
+## How to start
 
-1. **Pré-requisitos:**
-   - **Node.js** ou qualquer servidor HTTP simples para servir o jogo (ex.: [http-server](https://www.npmjs.com/package/http-server) ou o servidor embutido do Python).
-   - Navegador moderno (Chrome, Firefox, etc.).
-   - (Opcional) Ambiente Python para rodar scripts de treinamento ou simulações.
+ ```bash
+ git clone https://github.com/seu-usuario/poc_genetic_algorithms.git
 
-2. **Passos de Configuração:**
-   - Clone este repositório:
-     ```bash
-     git clone https://github.com/seu-usuario/poc_genetic_algorithms.git
-     ```
-   - Instale as dependências (caso utilize Node.js):
-     ```bash
-     cd poc_genetic_algorithms
-     npm install
-     ```
-   - Inicie o servidor local:
-     - Usando Node.js:
-       ```bash
-       npx http-server .
-       ```
-     - Ou usando Python (para Python 3):
-       ```bash
-       python -m http.server 8000
-       ```
-   - Acesse o jogo abrindo `index.html` no navegador ou navegando para `http://localhost:8000`.
+ cd poc_genetic_algorithms
 
-3. **Arquivos de Configuração:**
-   - `config.json`: Parâmetros para o algoritmo genético (taxa de mutação, tamanho da população, energia inicial, etc.).
-   - `game-config.js`: Configurações específicas do jogo (dimensões do tabuleiro, velocidade da cobrinha, etc.).
+ pip install -r requirements.txt
+ python app.py
+
+ ```
+
+- Acesse o jogo abrindo `index.html` no navegador ou navegando para `http://localhost:8000`.
 
 ## Games List
 
@@ -40,18 +22,6 @@ O projeto atualmente inclui:
 - **Snake Game**: O clássico jogo da cobrinha, onde o agente deve coletar alimentos sem colidir com as paredes ou com o próprio corpo.
 - *(Possível expansão)*: Outros jogos podem ser integrados para testar diferentes estratégias de treinamento de IA.
 
-## Estrutura do Projeto
-
-- `index.html`: Arquivo principal contendo o jogo em HTML.
-- `js/`: Scripts JavaScript com a lógica do jogo e implementação dos algoritmos genéticos.
-- `css/`: Folhas de estilo para a interface do jogo.
-- `assets/`: Recursos visuais (imagens, ícones, etc.).
-- `configs/`: Arquivos de configuração para o jogo e o algoritmo.
-- `README.md`: Este arquivo de documentação.
-
-Perfeito! Agora que você está organizando sua POC em `/game`, `/ga` e `/dashboard`, podemos estruturar um **plano passo a passo** para montar um projeto robusto e modular, inspirado diretamente no vídeo do Universo Programado.
-
----
 
 ## 📐 Estrutura Geral do Projeto
 
