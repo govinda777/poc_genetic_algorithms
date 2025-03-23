@@ -26,32 +26,60 @@ O projeto atualmente inclui:
 ## 📐 Estrutura Geral do Projeto
 
 ```
-poc_genetic_algorithms/
-├── /game/            # Jogo da cobrinha (interface HTML + JS)
-│   └── snake_game.html
-│   └── snake.js
-│   └── assets/
+.
+├── ga/                         # Módulo de lógica genético-neural
+│   ├── snake_agent.py          # Classe Agent: comportamento e decisões
+│   ├── snake_agent_dna.py      # Representação de DNA/genoma do agente
+│   ├── snake_agent_gene.py     # Alternativa ao DNA: estrutura de genes
+│   ├── snake_nn.py             # Rede neural usada pelos agentes
+│   ├── snake_ga.py             # Implementação do algoritmo genético (GA)
+│   ├── snake_ga_data.py        # Coleta e armazenamento de dados do treino
+│   ├── snake_ga_training.py    # Loop principal de treino e simulação
+│   ├── snake_mach.py           # Transmissão em tempo real do estado do jogo
+│   ├── MATCH.md                # Documentação sobre o sistema de partidas
+│   ├── MATCH_AND_WATHING.md   # Doc sobre partidas + visualização
+│   ├── TRAINING_AND_WATHING.md# Doc sobre treino + visualização
+│   └── README.md               # Documentação local do módulo `ga`
 │
-├── /ga/              # Lógica genética e neural (em Python)
-│   └── snake_ga.py
-│   └── snake_ga_data.py
-│   └── snake_ga_training.py
+├── game/                       # Jogo da cobrinha (HTML + JS)
+│   ├── snake_game.html         # Página com o jogo Snake
+│   ├── snake.js                # Lógica do jogo
+│   └── assets/                 # Recursos visuais do jogo
 │
-├── /dashboard/       # Frontend do painel com React
-│   ├── index.jsx
-│   ├── core.jsx
-│   ├── side_left.jsx
-│   ├── side_right.jsx
-│   ├── footer.jsx
-│   ├── service.js     # Comunicação com GA ou leitura de arquivos
+├── dashboard/                  # Frontend React para visualização de treino
+│   ├── index.html              # Página principal
+│   ├── index.jsx               # Entrada do React
+│   ├── core.jsx                # Componente central
+│   ├── side_left.jsx          # Painel lateral esquerdo
+│   ├── side_right.jsx         # Painel lateral direito
+│   ├── TrainingDashboard.jsx  # Tela principal de treino
+│   ├── service.js              # Integração com API/backend
+│   ├── footer.jsx              # Rodapé
+│   └── styles.css              # Estilização global
 │
-├── /components/      # Componentes React reutilizáveis
-│   └── chart.jsx
-│   └── progressBar.jsx
+├── components/                 # Componentes reutilizáveis
+│   └── chart.jsx               # Gráfico de performance/fitness
 │
-├── /data/            # (opcional) JSONs exportados do GA
-├── README.md
-└── requirements.txt  # dependências Python
+├── configs/                    # Arquivos de configuração
+│   ├── config.json             # Configuração da simulação
+│   └── game-config.js          # Config do ambiente de jogo
+│
+├── data/                       # Diretório para salvar dados de treino
+│
+├── docs/                       # Documentação geral do projeto
+│   └── TRAINING_AND_WATCHING.md
+│
+├── app.py                      # Entrypoint do backend com Flask/SocketIO
+├── generate-tree.sh            # Script para gerar estrutura de diretórios
+├── index.html                  # Página de entrada ou documentação
+├── OPERATION.md                # Manual de operação e execução
+├── README.md                   # Documentação principal do projeto
+├── LICENSE                     # Licença do projeto
+├── requirements.txt            # Dependências do Python
+├── package.json                # Configurações do projeto Node/React
+├── package-lock.json           # Lockfile do npm
+└── .gitignore                  # Ignora arquivos temporários/dados locais
+
 ```
 
 ---

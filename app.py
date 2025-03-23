@@ -4,8 +4,10 @@ import os
 import threading
 import time
 from ga import snake_ga_data
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__, static_folder='', static_url_path='')
+socketio = SocketIO(app)
 
 # Global variable to track training process
 training_thread = None
@@ -166,5 +168,22 @@ def list_sessions():
     sessions = snake_ga_data.list_training_sessions()
     return jsonify(sessions)
 
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+
+@socketio.on('game_start')
+def handle_game_start(data):
+    print('New game started:', data)
+    emit('server_response', {'message': 'Game start acknowledged'}, broadcast=True)
+
+@socketio.on('game_data')
+def handle_game_data(data):
+    print('Received game data:', data)
+
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    socketio.run(app, debug=True, port=8000)

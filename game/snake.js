@@ -28,10 +28,9 @@ let gameOver = false;
 let aiMode = false;
 let showSensors = false;
 let sensorData = {};
-
+const socket = io();
 // DOM elements
 let startBtn, resetBtn, toggleSensorsBtn, toggleAiBtn;
-let scoreDisplay, snakeSizeDisplay, energyDisplay, gameModeDisplay;
 let sensorDisplay;
 
 // Initialize the game
@@ -67,6 +66,7 @@ function startGame() {
     if (gameInterval) return;
     
     gameInterval = setInterval(gameStep, GAME_SPEED);
+    socket.emit('game_start', { startTime: Date.now() });
     startBtn.textContent = 'Pausar Jogo';
     startBtn.removeEventListener('click', startGame);
     startBtn.addEventListener('click', pauseGame);
@@ -241,6 +241,7 @@ function gameStep() {
     
     // Update displays
     updateDisplays();
+    socket.emit('game_data', { score: score, energy: energy });
     
     // Redraw the game
     drawGame();
