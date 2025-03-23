@@ -5,6 +5,9 @@ import threading
 import time
 from ga import snake_ga_data
 from flask_socketio import SocketIO, emit
+from ga.snake_training_journey import TrainingJourney, start_training_journey
+from ga.journey_api import register_journey_routes
+from ga.journey_visualizer import JourneyVisualizer, visualize_best_agent_from_session
 
 app = Flask(__name__, static_folder='', static_url_path='')
 socketio = SocketIO(app)
@@ -184,6 +187,31 @@ def handle_game_start(data):
 @socketio.on('game_data')
 def handle_game_data(data):
     print('Received game data:', data)
+
+# Registrar rotas da API da jornada
+register_journey_routes(app)
+
+# Adicionar rota para visualização de agentes
+@app.route('/api/visualize/agent/<session_id>', methods=['GET'])
+def visualize_agent_route(session_id):
+    result = visualize_best_agent_from_session(session_id)
+    return jsonify({
+        'status': 'success' if result else 'error',
+        'data': result
+    })
+
+# Adicionar rota para replay de partida
+@app.route('/api/visualize/replay/<session_id>', methods=['GET'])
+def replay_match_route(session_id):
+    match_file = os.path.join('data', f'session_{session_id}', 'matches', 'best_match.json')
+    
+    visualizer = JourneyVisualizer(replay_speed=float(request.args.get('speed', 1.0)))
+    success = visualizer.replay_match(match_file)
+    
+    return jsonify({
+        'status': 'success' if success else 'error',
+        'message': 'Replay concluído com sucesso' if success else 'Erro ao reproduzir partida'
+    })
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, port=8000)

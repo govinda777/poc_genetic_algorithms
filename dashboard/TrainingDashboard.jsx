@@ -20,10 +20,33 @@ const TrainingDashboard = () => {
 
   const handleTrainingSubmit = (e) => {
     e.preventDefault();
-    // Simula o início do treino, podendo posteriormente ser integrada a uma API
-    setTrainingStarted(true);
-    setShowTrainingForm(false);
-    setCurrentEpoch(0);
+    // Chamada para iniciar treinamento via API
+    fetch('/api/train', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        epochs: Number(trainingParams.epochs),
+        population_size: Number(trainingParams.population),
+        mutation_rate: 0.1,
+        crossover_rate: 0.7,
+        elitism: 0.1,
+        games_per_agent: 3
+      })
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          setTrainingStarted(true);
+          setShowTrainingForm(false);
+          setCurrentEpoch(0);
+        } else {
+          alert("Erro ao iniciar o treino: " + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao iniciar o treino:', error);
+        alert("Erro ao iniciar o treino");
+      });
   };
   useEffect(() => {
     let pollingInterval;
@@ -32,9 +55,8 @@ const TrainingDashboard = () => {
         fetch('/api/train/status')
           .then(response => response.json())
           .then(data => {
-            if (typeof data.currentEpoch !== 'undefined') {
-              setCurrentEpoch(data.currentEpoch);
-            }
+            const epoch = data.data && data.data.current && data.data.current.generation ? data.data.current.generation : 0;
+            setCurrentEpoch(epoch);
             setTrainingData(data);
           })
           .catch(error => console.error('Error fetching training status:', error));
