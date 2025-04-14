@@ -6,7 +6,7 @@ O projeto poc_genetic_algorithms explora algoritmos genéticos em uma abordagem 
 ## Regras
 
 - [ ] Codificação BDD, passos de bebê 🚼 
-- [ ] Escrever primeiro .featur, segundo .steps, código
+- [ ] Escrever primeiro .feature, segundo .steps, código
 - [ ] Enquanto os testes não estiverem passando a plateia não tem o direito de opinar, apenas o Piloto e Copiloto
 
 
