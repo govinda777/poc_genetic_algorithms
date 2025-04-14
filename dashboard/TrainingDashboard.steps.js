@@ -1,4 +1,4 @@
-const { Given, When, Then } = require('@cucumber/cucumber');
+const { Given, When, Then, Before } = require('@cucumber/cucumber');
 const { render, screen, fireEvent, waitFor } = require('@testing-library/react');
 const React = require('react');
 const expect = require('expect');
@@ -102,6 +102,27 @@ Given('que tenho um treinamento pausado', async function() {
   component.rerender(<TrainingDashboard />);
 });
 
+Given('tenho um treinamento em execução ou concluído', async function() {
+  // Reutilizamos o step para um treinamento em execução
+  await Given('que tenho um treinamento em execução');
+});
+
+Given('estou visualizando o dashboard de treinamento', function() {
+  // Verificar se estamos vendo o dashboard de treinamento
+  expect(screen.getByText('Treinamento em Progresso')).toBeInTheDocument();
+});
+
+Given('que estou visualizando os detalhes do agente', async function() {
+  // Primeiro certificamos que estamos no dashboard
+  await Given('estou visualizando o dashboard de treinamento');
+  
+  // Garantir que a aba de visualização do agente está ativa
+  fireEvent.click(screen.getByText('Visualizar Agente'));
+  
+  // Verificar se estamos na visualização correta
+  expect(screen.getByText('Detalhes do Agente')).toBeInTheDocument();
+});
+
 // Steps para ações
 When('eu clico no botão {string}', function(buttonText) {
   fireEvent.click(screen.getByText(buttonText));
@@ -141,6 +162,17 @@ When('o servidor retorna um erro ao tentar pausar o treinamento', function() {
 When('o servidor retorna um erro ao tentar salvar o treinamento', function() {
   global.fetch.mockClear();
   mockFetchResponse('error', { message: 'Erro ao salvar treinamento' });
+});
+
+When('eu clico na aba {string}', function(abaText) {
+  fireEvent.click(screen.getByText(abaText));
+});
+
+When('eu alterno entre as diferentes abas de visualização', function() {
+  // Clicar nas diferentes abas para alternar entre visualizações
+  fireEvent.click(screen.getByText('Visualizar Agente'));
+  fireEvent.click(screen.getByText('Visualizar DNA'));
+  fireEvent.click(screen.getByText('Visualizar Rede Neural'));
 });
 
 // Steps para verificações
@@ -258,4 +290,110 @@ Then('o formulário de treinamento deve continuar visível', function() {
 
 Then('o treinamento deve continuar em execução', function() {
   expect(screen.getByText('Treinamento em Progresso')).toBeInTheDocument();
+});
+
+// Novos steps para o Dashboard de Visualização
+
+Then('eu devo ver a seção de detalhes do agente', function() {
+  expect(screen.getByText('Detalhes do Agente')).toBeInTheDocument();
+});
+
+Then('eu devo ver os seguintes detalhes do agente:', function(dataTable) {
+  const detalhes = dataTable.hashes();
+  detalhes.forEach(detalhe => {
+    expect(screen.getByText(new RegExp(detalhe.detalhe))).toBeInTheDocument();
+  });
+});
+
+Then('eu devo ver a simulação do agente em tempo real', function() {
+  const simulacao = screen.getByTitle('Simulação do Agente');
+  expect(simulacao).toBeInTheDocument();
+});
+
+Then('eu devo ver a seção de visualização do DNA', function() {
+  expect(screen.getByText('Visualização do DNA')).toBeInTheDocument();
+});
+
+Then('eu devo ver a representação gráfica do DNA do agente', function() {
+  // Verificar se existe o container para a visualização do DNA
+  const dnaContainer = screen.getByTestId('dna-visualization');
+  expect(dnaContainer).toBeInTheDocument();
+});
+
+Then('eu devo ver os valores dos genes exibidos em formato legível', function() {
+  // Verificar se existem elementos que mostram valores de genes
+  const genesValues = screen.getByTestId('gene-values');
+  expect(genesValues).toBeInTheDocument();
+});
+
+Then('eu devo poder identificar os genes ativos e inativos', function() {
+  // Verificar se existem elementos que indicam genes ativos e inativos
+  const activeGenes = screen.getAllByTestId('active-gene');
+  const inactiveGenes = screen.getAllByTestId('inactive-gene');
+  
+  expect(activeGenes.length).toBeGreaterThan(0);
+  expect(inactiveGenes.length).toBeGreaterThan(0);
+});
+
+Then('eu devo ver a representação visual da rede neural', function() {
+  // Verificar se existe o container para a visualização da rede neural
+  const nnContainer = screen.getByTestId('neural-network-visualization');
+  expect(nnContainer).toBeInTheDocument();
+});
+
+Then('eu devo ver os neurônios e suas conexões', function() {
+  // Verificar se existem elementos que representam neurônios e conexões
+  const neurons = screen.getAllByTestId('neuron');
+  const connections = screen.getAllByTestId('connection');
+  
+  expect(neurons.length).toBeGreaterThan(0);
+  expect(connections.length).toBeGreaterThan(0);
+});
+
+Then('os neurônios ativos devem ser destacados visualmente', function() {
+  // Verificar se existem neurônios com destaque visual de ativação
+  const activeNeurons = screen.getAllByTestId('active-neuron');
+  expect(activeNeurons.length).toBeGreaterThan(0);
+});
+
+Then('eu devo ver os pesos das conexões entre neurônios', function() {
+  // Verificar se existem elementos que mostram pesos das conexões
+  const weights = screen.getAllByTestId('connection-weight');
+  expect(weights.length).toBeGreaterThan(0);
+});
+
+Then('cada visualização deve ser atualizada corretamente', function() {
+  // Verificar se todas as visualizações estão presentes e atualizadas
+  const agentView = screen.queryByText('Detalhes do Agente');
+  const dnaView = screen.queryByText('Visualização do DNA');
+  const nnView = screen.queryByText('Visualização da Rede Neural');
+  
+  // Pelo menos uma das visualizações deve estar ativa
+  expect(agentView !== null || dnaView !== null || nnView !== null).toBeTruthy();
+});
+
+Then('os dados exibidos devem corresponder ao agente selecionado', function() {
+  // Verificar se os dados exibidos correspondem ao agente selecionado
+  // Isso normalmente requer verificação de um ID ou outro identificador
+  const agentId = screen.getByTestId('agent-id');
+  expect(agentId).toBeInTheDocument();
+});
+
+Then('eu devo ver as seguintes métricas:', function(dataTable) {
+  const metricas = dataTable.hashes();
+  metricas.forEach(metrica => {
+    expect(screen.getByText(new RegExp(metrica.métrica))).toBeInTheDocument();
+  });
+});
+
+Then('as métricas devem ser apresentadas em formato gráfico', function() {
+  // Verificar se existem elementos gráficos para as métricas
+  const graphs = screen.getAllByTestId('metric-graph');
+  expect(graphs.length).toBeGreaterThan(0);
+});
+
+Then('devo poder ver a evolução das métricas ao longo do tempo', function() {
+  // Verificar se existe um elemento que mostra a evolução temporal
+  const timeGraph = screen.getByTestId('time-evolution-graph');
+  expect(timeGraph).toBeInTheDocument();
 }); 

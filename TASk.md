@@ -6,38 +6,40 @@
 - [x] Interface web básica para visualização
 
 ## Iniciar treinamento
-- [ ] Formulário para configuração do treinamento
-- [ ] Botão para iniciar o treinamento
-- [ ] Exibição do progresso do treinamento
-- [ ] Exibição dos resultados do treinamento
+- [x] Formulário para configuração do treinamento
+- [x] Botão para iniciar o treinamento
+- [x] Exibição do progresso do treinamento
+- [x] Exibição dos resultados do treinamento
 
 ## Pausar treinamento
-- [ ] Botão para pausar o treinamento
-- [ ] Exibição do progresso do treinamento
-- [ ] Exibição dos resultados do treinamento
+- [x] Botão para pausar o treinamento
+- [x] Exibição do progresso do treinamento
+- [x] Exibição dos resultados do treinamento
 
 ## Continuar treinamento
-- [ ] Botão para continuar o treinamento
-- [ ] Exibição do progresso do treinamento
-- [ ] Exibição dos resultados do treinamento
+- [x] Botão para continuar o treinamento
+- [x] Exibição do progresso do treinamento
+- [x] Exibição dos resultados do treinamento
 
 ## Salvar treinamento
-- [ ] Botão para salvar o treinamento
-- [ ] Exibição do progresso do treinamento
-- [ ] Exibição dos resultados do treinamento
+- [x] Botão para salvar o treinamento
+- [x] Exibição do progresso do treinamento
+- [x] Exibição dos resultados do treinamento
 
 ## Dashboard de treinamento
 
 ### Visualizar agente
-- [ ] Exibição do progresso do treinamento
-- [ ] Exibição dos resultados do treinamento
-- [ ] Exibição dos resultados do treinamento
+- [x] Exibição dos detalhes do agente
+- [x] Simulação em tempo real do agente
 
 ### Visualizar DNA
-- [ ] Exibição do DNA do agente
+- [x] Representação gráfica do DNA do agente
+- [x] Visualização dos genes ativos e inativos
 
 ### Visualizar rede neural
-- [ ] Exibição da rede neural com os neurônios(ativos) e pesos
+- [x] Representação gráfica da rede neural do agente
+- [x] Visualização dos pesos das conexões
+- [x] Exibição da rede neural com os neurônios(ativos) e pesos
 
 
 ## Métricas resultado do treinamento

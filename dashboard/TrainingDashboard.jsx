@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import AgentVisualization from './AgentVisualization';
+import DNAVisualization from './DNAVisualization';
+import NeuralNetworkVisualization from './NeuralNetworkVisualization';
+import PerformanceMetrics from './PerformanceMetrics';
 
 const TrainingDashboard = () => {
   const [showTrainingForm, setShowTrainingForm] = useState(false);
@@ -15,6 +19,7 @@ const TrainingDashboard = () => {
   const [currentEpoch, setCurrentEpoch] = useState(0);
   const [trainingData, setTrainingData] = useState(null);
   const [statusMessage, setStatusMessage] = useState('');
+  const [activeTab, setActiveTab] = useState('agent'); // Aba ativa: agent, dna, neural, metrics
 
   const handleNewTraining = () => {
     setShowTrainingForm(true);
@@ -139,6 +144,10 @@ const TrainingDashboard = () => {
       });
   };
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
+
   useEffect(() => {
     let pollingInterval;
     if (trainingStarted && !trainingPaused) {
@@ -155,6 +164,24 @@ const TrainingDashboard = () => {
     }
     return () => clearInterval(pollingInterval);
   }, [trainingStarted, trainingPaused]);
+
+  // Renderização condicional da aba ativa
+  const renderActiveTab = () => {
+    const agentData = trainingData?.data?.best_agent || null;
+    
+    switch(activeTab) {
+      case 'agent':
+        return <AgentVisualization agent={agentData} />;
+      case 'dna':
+        return <DNAVisualization agent={agentData} />;
+      case 'neural':
+        return <NeuralNetworkVisualization agent={agentData} />;
+      case 'metrics':
+        return <PerformanceMetrics agent={agentData} trainingData={trainingData?.data} />;
+      default:
+        return <AgentVisualization agent={agentData} />;
+    }
+  };
 
   return (
     <div className="training-dashboard" style={{ padding: '20px', border: '1px solid #ccc', marginTop: '20px' }}>
@@ -372,22 +399,81 @@ const TrainingDashboard = () => {
             </button>
           </div>
           
-          {trainingData && (
-            <div className="training-data" style={{ marginTop: '25px' }}>
-              <h3>Resultados do Treinamento</h3>
-              <div style={{ overflowX: 'auto', maxHeight: '300px', border: '1px solid #ddd', borderRadius: '4px', padding: '10px' }}>
-                <pre>{JSON.stringify(trainingData, null, 2)}</pre>
-              </div>
-            </div>
-          )}
+          <div className="visualization-tabs" style={{ marginTop: '25px', borderBottom: '1px solid #ddd' }}>
+            <ul style={{ display: 'flex', listStyle: 'none', padding: 0, margin: 0 }}>
+              <li style={{ marginRight: '10px' }}>
+                <button 
+                  onClick={() => handleTabChange('agent')}
+                  className={activeTab === 'agent' ? 'active' : ''}
+                  style={{ 
+                    padding: '10px 15px', 
+                    backgroundColor: activeTab === 'agent' ? '#007bff' : '#f8f9fa', 
+                    color: activeTab === 'agent' ? 'white' : '#333', 
+                    border: '1px solid #ddd', 
+                    borderBottom: activeTab === 'agent' ? '1px solid #007bff' : 'none',
+                    borderRadius: '4px 4px 0 0',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Visualizar Agente
+                </button>
+              </li>
+              <li style={{ marginRight: '10px' }}>
+                <button 
+                  onClick={() => handleTabChange('dna')}
+                  className={activeTab === 'dna' ? 'active' : ''}
+                  style={{ 
+                    padding: '10px 15px', 
+                    backgroundColor: activeTab === 'dna' ? '#007bff' : '#f8f9fa', 
+                    color: activeTab === 'dna' ? 'white' : '#333', 
+                    border: '1px solid #ddd', 
+                    borderBottom: activeTab === 'dna' ? '1px solid #007bff' : 'none',
+                    borderRadius: '4px 4px 0 0',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Visualizar DNA
+                </button>
+              </li>
+              <li style={{ marginRight: '10px' }}>
+                <button 
+                  onClick={() => handleTabChange('neural')}
+                  className={activeTab === 'neural' ? 'active' : ''}
+                  style={{ 
+                    padding: '10px 15px', 
+                    backgroundColor: activeTab === 'neural' ? '#007bff' : '#f8f9fa', 
+                    color: activeTab === 'neural' ? 'white' : '#333', 
+                    border: '1px solid #ddd', 
+                    borderBottom: activeTab === 'neural' ? '1px solid #007bff' : 'none',
+                    borderRadius: '4px 4px 0 0',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Visualizar Rede Neural
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => handleTabChange('metrics')}
+                  className={activeTab === 'metrics' ? 'active' : ''}
+                  style={{ 
+                    padding: '10px 15px', 
+                    backgroundColor: activeTab === 'metrics' ? '#007bff' : '#f8f9fa', 
+                    color: activeTab === 'metrics' ? 'white' : '#333', 
+                    border: '1px solid #ddd', 
+                    borderBottom: activeTab === 'metrics' ? '1px solid #007bff' : 'none',
+                    borderRadius: '4px 4px 0 0',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Métricas de Desempenho
+                </button>
+              </li>
+            </ul>
+          </div>
           
-          <div className="agent-visualization" style={{ marginTop: '25px' }}>
-            <h3>Visualização do Agente</h3>
-            <iframe
-              src="/game/snake_game.html"
-              style={{ width: '100%', height: '500px', border: '1px solid #ddd', borderRadius: '4px' }}
-              title="Simulação do Agente"
-            ></iframe>
+          <div className="visualization-content" style={{ marginTop: '20px', padding: '15px', border: '1px solid #ddd', borderTop: 'none', borderRadius: '0 0 4px 4px' }}>
+            {renderActiveTab()}
           </div>
         </div>
       )}
