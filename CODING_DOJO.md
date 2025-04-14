@@ -1,5 +1,6 @@
 # Coding Dojo
 
+O projeto poc_genetic_algorithms explora algoritmos genéticos em uma abordagem prática e colaborativa. Ele utiliza a dinâmica de Coding Dojo para promover a prática de programação em grupo, com foco em desenvolvimento orientado por testes (BDD). Os participantes seguem uma estrutura de revezamento entre os papéis de Piloto e Copiloto, dentro de um timebox de 30 minutos, contribuindo para a resolução de problemas de forma iterativa e colaborativa.
 
 
 ## Regras
