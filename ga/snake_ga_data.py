@@ -265,6 +265,12 @@ class TrainingData:
         
         return dashboard_data
 
+def save_game_data(game_data):
+    """
+    Save game data to a file.
+    """
+    with open('game_data.json', 'w') as f:
+        json.dump(game_data, f, indent=2)
 
 def load_training_session(session_id, data_dir='../data'):
     """

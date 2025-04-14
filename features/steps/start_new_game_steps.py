@@ -41,3 +41,27 @@ def step_impl_tentar_iniciar_jogo(context):
 def step_impl_verificar_mensagem_erro(context):
     # Verificar se uma mensagem de erro é exibida, indicando a falha ao iniciar o jogo
     pass
+
+@given('que a configuração avançada está definida')
+def step_impl_config_avancada(context):
+    context.config_avancada = True
+
+@then('o jogo deve iniciar com as configurações avançadas aplicadas')
+def step_impl_jogo_config_avancada(context):
+    assert getattr(context, 'config_avancada', False), "Configuração avançada não aplicada"
+
+@given('que a configuração avançada está inválida')
+def step_impl_config_invalida(context):
+    context.config_avancada = False
+
+@then('uma mensagem de erro de configuração deve ser exibida')
+def step_impl_mensagem_erro_config(context):
+    assert not context.config_avancada, "Configuração avançada válida, quando se esperava inválida"
+
+@given('que a dificuldade está definida como "{nivel}"')
+def step_impl_definir_dificuldade(context, nivel):
+    context.dificuldade = nivel
+
+@then('o jogo deve iniciar no modo "{nivel}"')
+def step_impl_jogo_dificuldade(context, nivel):
+    assert getattr(context, 'dificuldade', None) == nivel, f"Dificuldade esperada {nivel} não aplicada"

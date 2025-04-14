@@ -12,8 +12,8 @@ import time
 import json
 import argparse
 import numpy as np
-from snake_ga import GeneticAlgorithm, Agent, NeuralNetwork
-from snake_ga_data import TrainingData
+from .snake_ga import GeneticAlgorithm, Agent, NeuralNetwork
+from .snake_ga_data import TrainingData
 
 # Constants
 DEFAULT_POPULATION_SIZE = 100
