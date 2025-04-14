@@ -1,5 +1,7 @@
 # Coding Dojo
 
+
+
 ## Regras
 
 - [ ] Codificação BDD, passos de bebê 🚼 
