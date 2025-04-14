@@ -1,3 +1,75 @@
+flowchart LR
+    subgraph "Camada de Entrada (24 neurônios)"
+        subgraph "Sensores de Obstáculo"
+            I1[I1]
+            I2[I2]
+            I3[I3]
+            I4[I4]
+            I5[I5]
+            I6[I6]
+            I7[I7]
+            I8[I8]
+        end
+        
+        subgraph "Sensores de Comida"
+            I9[I9]
+            I10[I10]
+            I11[I11]
+            I12[I12]
+            I13[I13]
+            I14[I14]
+            I15[I15]
+            I16[I16]
+        end
+        
+        subgraph "Sensores de Perigo"
+            I17[I17]
+            I18[I18]
+            I19[I19]
+            I20[I20]
+            I21[I21]
+            I22[I22]
+            I23[I23]
+            I24[I24]
+        end
+    end
+    
+    subgraph "Camada Oculta (16 neurônios)"
+        H1[H1]
+        H2[H2]
+        H3[H3]
+        H4[H4]
+        H5[H5]
+        H6[H6]
+        H7[H7]
+        H8[H8]
+        H9[H9]
+        H10[H10]
+        H11[H11]
+        H12[H12]
+        H13[H13]
+        H14[H14]
+        H15[H15]
+        H16[H16]
+    end
+    
+    subgraph "Camada de Saída (4 neurônios)"
+        O1[Cima]
+        O2[Direita]
+        O3[Baixo]
+        O4[Esquerda]
+    end
+    
+    %% Conexões entre camadas
+    Entrada --> |"W_ih (384 conexões)<br>Índices 0-383"| Oculta
+    Oculta --> |"W_ho (64 conexões)<br>Índices 400-463"| Saída
+    
+    %% Vieses
+    B_h[["Vieses B_h<br>(16 valores)<br>Índices 384-399"]] --> Oculta
+    B_o[["Vieses B_o<br>(4 valores)<br>Índices 464-467"]] --> Saída
+
+
+
 <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
   <!-- Título -->
   <text x="300" y="30" font-family="Arial" font-size="20" fill="black">Rede Neural do Agente Snake</text>
