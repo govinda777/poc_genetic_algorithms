@@ -1,3 +1,4 @@
+```mermaid
 flowchart LR
     subgraph "Camada de Entrada (24 neurônios)"
         subgraph "Sensores de Obstáculo"
@@ -67,7 +68,7 @@ flowchart LR
     %% Vieses
     B_h[["Vieses B_h<br>(16 valores)<br>Índices 384-399"]] --> Oculta
     B_o[["Vieses B_o<br>(4 valores)<br>Índices 464-467"]] --> Saída
-
+```
 
 
 <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
