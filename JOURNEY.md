@@ -1,5 +1,21 @@
 # Documentação da Jornada de Treinamento
 
+flowchart TD
+    A[Início] --> B[Configuração Inicial]
+    B --> C[Ciclo de Treinamento]
+    C --> D[Critérios de Parada]
+    D --> E[Seleção do Melhor Modelo]
+    E --> F[Visualização da Partida]
+    F --> G[Resultado da Partida]
+    G --> H[Armazenamento de Dados]
+    H --> I[Fim]
+
+    B -->|Configura parâmetros e ambiente| C
+    C -->|Executa episódios e avalia desempenho| D
+    D -->|Checa condições de parada| E
+    F -->|Replays e estatísticas| G
+    G -->|Relatórios e análises| H
+
 ## Índice
 1. [Introdução](#introdução)
 2. [Jornada de Treinamento](#jornada-de-treinamento)
