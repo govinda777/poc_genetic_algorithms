@@ -6,7 +6,40 @@ from .snake_mach import snake_mach
 from .snake_ga_data import save_game_data
 
 class Agent:
+    """
+    Agente inteligente controlado por rede neural para jogar o jogo Snake.
+    
+    Esta classe representa um agente que joga através de uma rede neural controlada
+    por seu genoma (conjunto de pesos). Ela gerencia o ciclo de vida completo do agente,
+    incluindo inicialização, tomada de decisões, processamento de dados e avaliação.
+    
+    Attributes:
+        id (str): Identificador único do agente
+        generation (int): Geração à qual o agente pertence
+        parent1_id (str): ID do primeiro pai (se aplicável)
+        parent2_id (str): ID do segundo pai (se aplicável)
+        fitness (float): Pontuação de aptidão calculada
+        food_eaten (int): Quantidade de comida consumida
+        moves_made (int): Número total de movimentos realizados
+        survival_time (int): Tempo de sobrevivência (em passos)
+        input_size (int): Tamanho da camada de entrada da rede neural
+        hidden_size (int): Tamanho da camada oculta da rede neural
+        output_size (int): Tamanho da camada de saída da rede neural
+        genome (numpy.ndarray): Vetor de pesos da rede neural
+        neural_network (NeuralNetwork): Instância da rede neural para tomada de decisões
+    """
+    
     def __init__(self, id=None, genome=None, input_size=24, hidden_size=16, output_size=4):
+        """
+        Inicializa um novo agente com configurações personalizáveis.
+        
+        Args:
+            id (str, optional): Identificador único. Se não fornecido, será gerado aleatoriamente.
+            genome (numpy.ndarray, optional): Vetor de pesos pré-existente.
+            input_size (int, optional): Tamanho da camada de entrada. Padrão é 24.
+            hidden_size (int, optional): Tamanho da camada oculta. Padrão é 16.
+            output_size (int, optional): Tamanho da camada de saída. Padrão é 4.
+        """
         self.id = id or f"agent_{np.random.randint(10000)}"
         self.generation = 0
         self.parent1_id = None
@@ -27,6 +60,19 @@ class Agent:
         self.neural_network = NeuralNetwork(input_size, hidden_size, output_size, self.genome)
 
     def decide_action(self, game_state):
+        """
+        Determina a próxima ação com base no estado atual do jogo.
+        
+        O método processa o estado do jogo para extrair características relevantes,
+        alimenta essas informações na rede neural e retorna a ação escolhida.
+        
+        Args:
+            game_state (dict): Estado atual do jogo contendo informações como posição
+                               da cobra, comida e obstáculos.
+                               
+        Returns:
+            int: Índice da ação escolhida (0-3, representando direções).
+        """
         inputs = self._process_game_state(game_state)
         outputs = self.neural_network.forward(inputs)
         return np.argmax(outputs)
@@ -41,6 +87,12 @@ class Agent:
         - Informação binária se existe perigo iminente (muito próximo de uma parede ou corpo da cobra)
 
         Totalizando 8 direções × 3 variáveis = 24 entradas.
+        
+        Args:
+            game_state (dict): Estado do jogo contendo informações sensoriais.
+            
+        Returns:
+            numpy.ndarray: Vetor de 24 valores representando a entrada processada para a rede neural.
         """
         inputs = np.zeros(24)
         if 'sensors' in game_state and 'vision' in game_state['sensors']:
@@ -53,6 +105,19 @@ class Agent:
         return inputs
 
     def update_fitness(self, food_eaten, steps_taken, energy_left):
+        """
+        Atualiza a pontuação de aptidão do agente com base em seu desempenho.
+        
+        O fitness é calculado considerando três componentes:
+        1. Comida consumida (principal objetivo)
+        2. Eficiência energética (bônus por conservar energia)
+        3. Tempo de sobrevivência (bônus por durar mais tempo)
+        
+        Args:
+            food_eaten (int): Quantidade de comida consumida durante a partida.
+            steps_taken (int): Número de passos realizados durante a partida.
+            energy_left (float): Energia restante ao final da partida.
+        """
         self.food_eaten = food_eaten
         self.moves_made = steps_taken
         self.survival_time = steps_taken
@@ -63,6 +128,12 @@ class Agent:
         self.fitness = food_fitness + efficiency_bonus + survival_bonus
 
     def reset(self):
+        """
+        Reinicia as métricas de desempenho do agente para uma nova avaliação.
+        
+        Esta função é chamada antes do início de uma nova partida para garantir
+        que as estatísticas da partida anterior não interfiram na avaliação atual.
+        """
         self.fitness = 0
         self.food_eaten = 0
         self.moves_made = 0
@@ -73,6 +144,9 @@ class Agent:
     def start_game(self):
         """
         Inicia uma partida para este agente (Passo 1).
+        
+        Abre o jogo Snake em um navegador com o ID do agente como parâmetro,
+        permitindo que o jogo identifique qual agente está jogando.
         
         Returns:
             bool: True se a partida foi iniciada com sucesso
@@ -90,6 +164,9 @@ class Agent:
     def transmit_state(self, game_state, status="EM ANDAMENTO"):
         """
         Transmite o estado atual do jogo para processamento em tempo real (Passo 2).
+        
+        Utiliza o módulo snake_mach para transmitir informações sobre o estado
+        atual do jogo, permitindo visualização e análise em tempo real.
         
         Args:
             game_state (dict): Estado atual do jogo
@@ -113,11 +190,15 @@ class Agent:
         """
         Processa os dados coletados durante a partida (Passo 3).
         
+        Extrai métricas significativas dos dados brutos e atualiza
+        o fitness do agente com base nessas informações.
+        
         Args:
             game_data (dict): Dados coletados durante a partida
             
         Returns:
-            dict: Métricas processadas
+            dict: Métricas processadas incluindo score, steps, energia restante
+                 e padrões de movimento.
         """
         metrics = {
             "agent_id": self.id,
@@ -139,7 +220,19 @@ class Agent:
         return metrics
     
     def _analyze_movement(self, positions):
-        """Analisa padrões de movimento com base nas posições."""
+        """
+        Analisa padrões de movimento com base nas posições registradas.
+        
+        Contabiliza a frequência de movimentos em cada direção para
+        identificar possíveis padrões ou tendências no comportamento do agente.
+        
+        Args:
+            positions (list): Lista de posições (x,y) da cobra ao longo do tempo
+            
+        Returns:
+            dict: Dicionário com contagem de movimentos em cada direção ou
+                 mensagem de dados insuficientes.
+        """
         if not positions or len(positions) < 2:
             return {"pattern": "insufficient_data"}
             
@@ -162,6 +255,9 @@ class Agent:
         """
         Armazena os dados da partida para análise posterior (Passo 4).
         
+        Utiliza a função save_game_data para persistir as métricas coletadas,
+        permitindo análise histórica e comparações entre agentes.
+        
         Args:
             metrics (dict): Métricas processadas da partida
             
@@ -178,13 +274,17 @@ class Agent:
     
     def end_game(self, result):
         """
-        Finaliza a partida e registra o resultado (Passo 5).
+        Finaliza a partida e registra o resultado final (Passo 5).
+        
+        Gera um resumo da partida, libera recursos e encerra o processo,
+        permitindo que o sistema continue com outros agentes ou gerações.
         
         Args:
             result (dict): Resultado final da partida
             
         Returns:
-            dict: Resumo da partida finalizada
+            dict: Resumo da partida finalizada incluindo ID, geração,
+                 resultado, pontuação final e fitness.
         """
         # Registra o resultado final
         summary = {
@@ -207,12 +307,19 @@ class Agent:
         """
         Executa o fluxo completo de uma partida para este agente.
         
+        Implementa o ciclo completo dos 5 passos definidos em AGENT_STEPS.md:
+        1. Iniciar partida
+        2. Transmitir estados
+        3. Processar dados
+        4. Armazenar dados
+        5. Finalizar partida
+        
         Args:
-            simulator: Simulador do jogo
-            max_steps (int): Número máximo de passos
+            simulator: Simulador do jogo que implementa a lógica do Snake
+            max_steps (int): Número máximo de passos. Padrão é 1000.
             
         Returns:
-            dict: Resumo da partida
+            dict: Resumo da partida incluindo resultado, pontuação e fitness.
         """
         # Inicia a partida (Passo 1)
         self.start_game()

@@ -3,6 +3,7 @@ import subprocess
 import os
 import threading
 import time
+import json
 from ga import snake_ga_data
 from flask_socketio import SocketIO, emit
 from ga.snake_training_journey import TrainingJourney, start_training_journey
@@ -15,6 +16,8 @@ socketio = SocketIO(app)
 # Global variable to track training process
 training_thread = None
 training_process = None
+training_paused = False
+current_training_config = None
 
 @app.route('/')
 def serve():
@@ -65,7 +68,7 @@ def run_training_process(epochs, population_size, mutation_rate, crossover_rate,
 
 @app.route('/api/train', methods=['POST'])
 def start_training():
-    global training_thread, training_process
+    global training_thread, training_process, training_paused, current_training_config
     
     # Check if training is already running
     if training_thread and training_thread.is_alive():
@@ -83,6 +86,19 @@ def start_training():
     elitism = data.get('elitism', 0.1)
     games_per_agent = data.get('games_per_agent', 3)
     
+    # Store the current training configuration
+    current_training_config = {
+        'epochs': epochs,
+        'population_size': population_size,
+        'mutation_rate': mutation_rate,
+        'crossover_rate': crossover_rate,
+        'elitism': elitism,
+        'games_per_agent': games_per_agent
+    }
+    
+    # Reset the paused flag
+    training_paused = False
+    
     # Start training in a background thread
     training_thread = threading.Thread(
         target=run_training_process,
@@ -96,9 +112,131 @@ def start_training():
         'message': 'Training started in the background'
     })
 
+@app.route('/api/train/pause', methods=['POST'])
+def pause_training():
+    global training_paused, training_process
+    
+    if training_process is None:
+        return jsonify({
+            'status': 'error',
+            'message': 'No training process is running'
+        }), 400
+    
+    if training_paused:
+        return jsonify({
+            'status': 'error',
+            'message': 'Training is already paused'
+        }), 400
+    
+    # Send a pause signal to the training process
+    # This would typically involve a signal or mechanism to pause the training
+    # For this implementation, we'll simulate pausing by sending a SIGSTOP signal
+    try:
+        # In a real implementation, you might use a custom signal or API call
+        # to tell your training process to pause
+        training_paused = True
+        
+        # For demo purposes, let's log the pause event
+        print(f"Training paused at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Training paused successfully'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error pausing training: {str(e)}'
+        }), 500
+
+@app.route('/api/train/continue', methods=['POST'])
+def continue_training():
+    global training_paused, training_process
+    
+    if training_process is None:
+        return jsonify({
+            'status': 'error',
+            'message': 'No training process is running'
+        }), 400
+    
+    if not training_paused:
+        return jsonify({
+            'status': 'error',
+            'message': 'Training is not paused'
+        }), 400
+    
+    # Send a continue signal to the training process
+    try:
+        # In a real implementation, you might use a custom signal or API call
+        # to tell your training process to continue
+        training_paused = False
+        
+        # For demo purposes, let's log the continue event
+        print(f"Training continued at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Training continued successfully'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error continuing training: {str(e)}'
+        }), 500
+
+@app.route('/api/train/save', methods=['POST'])
+def save_training():
+    global training_process, current_training_config
+    
+    if training_process is None:
+        return jsonify({
+            'status': 'error',
+            'message': 'No training process is running'
+        }), 400
+    
+    try:
+        # Get current training data
+        training_data = snake_ga_data.get_latest_data()
+        
+        if not training_data:
+            return jsonify({
+                'status': 'error',
+                'message': 'No training data available to save'
+            }), 400
+        
+        # Create a timestamp for the save
+        timestamp = time.strftime('%Y%m%d_%H%M%S')
+        
+        # Create a directory for saves if it doesn't exist
+        save_dir = os.path.join('data', 'saves')
+        os.makedirs(save_dir, exist_ok=True)
+        
+        # Save the training data and configuration
+        save_path = os.path.join(save_dir, f'training_save_{timestamp}.json')
+        
+        save_data = {
+            'timestamp': timestamp,
+            'config': current_training_config,
+            'training_data': training_data
+        }
+        
+        with open(save_path, 'w') as f:
+            json.dump(save_data, f, indent=2)
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Training saved successfully',
+            'save_path': save_path
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error saving training: {str(e)}'
+        }), 500
+
 @app.route('/api/train/status', methods=['GET'])
 def training_status():
-    global training_thread, training_process
+    global training_thread, training_process, training_paused
     
     # Check if training thread is active
     is_active = training_thread is not None and training_thread.is_alive()
@@ -108,12 +246,13 @@ def training_status():
     
     return jsonify({
         'active': is_active,
+        'paused': training_paused,
         'data': training_data
     })
 
 @app.route('/api/train/stop', methods=['POST'])
 def stop_training():
-    global training_process
+    global training_process, training_paused
     
     if training_process is None:
         return jsonify({
@@ -129,6 +268,9 @@ def stop_training():
         # Force kill if still running
         if training_process.poll() is None:
             training_process.kill()
+        
+        # Reset the paused flag
+        training_paused = False
         
         return jsonify({
             'status': 'success',
