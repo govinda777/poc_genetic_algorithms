@@ -39,16 +39,15 @@ Problema:
 
 Seguencia: 1 criar .feature, 2 criar .steps, 3 criar o código
 
-[x] Implementar o Snake Game
-[x] Implementar o algoritmo genético
-[ ] Implementar a visualização da evolução da aptidão
-[ ] Implementar a seleção por torneio
-[ ] Implementar o crossover
-[ ] Implementar a mutação
-[ ] Implementar a elitismo
-[ ] Implementar a torneio
-[ ] Implementar a mutação
-
+- [x] Implementar o Snake Game
+- [x] Implementar o algoritmo genético
+- [ ] Implementar a visualização da evolução da aptidão
+- [ ] Implementar a seleção por torneio
+- [ ] Implementar o crossover
+- [ ] Implementar a mutação
+- [ ] Implementar a elitismo
+- [ ] Implementar a torneio
+- [ ] Implementar a mutação
 
 ### ✅ Nível Fácil +
 
