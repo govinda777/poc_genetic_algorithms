@@ -12,7 +12,7 @@ O projeto poc_genetic_algorithms explora algoritmos genéticos em uma abordagem 
 
 ## Dinâmica 
 
-- Timebox : 30 min
+- Timebox : 15 min
 - A cada 5 min alguém da plateia vira Copiloto.
 - A cada 5 min o copiloto vira piloto.
 - Prerequisites para participar. Ter uma conta no GitHub, Fazer um fork do repositório
@@ -21,90 +21,46 @@ O projeto poc_genetic_algorithms explora algoritmos genéticos em uma abordagem 
 
 ## Desafios
 
----
+Problema: 
 
-✅ Nível Fácil
-
-1. Visualização da Evolução da Aptidão
-
-Objetivo:  
-
-Benefícios:  
-
-Ferramentas:  
-
-
-2. Implementar Elitismo
-
-Objetivo:  
-
-Benefícios:  
-
-Implementação:  
-
-
-
----
-
-⚙️ Nível Intermediário
-
-3. Introduzir Mutação Adaptativa
-
-Objetivo:  
-
-Benefícios:  
-
-Implementação:  
-
-
-4. Implementar Seleção por Torneio
-
-Objetivo:  
-
-Benefícios:  
-
-Implementação:  
-
-
-
----
-
-🔥 Nível Avançado
-
-5. Adicionar Obstáculos Dinâmicos ao Ambiente
-
-Objetivo:  
-
-Benefícios:  
-
-Implementação:  
-
-
-6. Implementar Competição entre Agentes
-
-Objetivo:  
-
-Benefícios:  
-
-Implementação:  
-
-
-
----
-
-## Desafios
+- Snake Game
+    Objetivo: 
+    - Encontrar o melhor caminho para a cobra encontrar o alimento.
+    
+    Regras:
+    - A cobra pode se mover em qualquer direção.
+    - A cobra pode colidir com a parede ou com ela mesma.
+    - A cobra ganha pontos ao comer o alimento.
+    - A cobra perde pontos ao colidir com a parede ou com ela mesma.
+    - A cobra pode crescer ao comer o alimento.
+    - A cobra pode morrer se colidir com a parede ou com ela mesma.
 
 ### ✅ Nível Fácil
 
+Seguencia: 1 criar .feature, 2 criar .steps, 3 criar o código
+
+[x] Implementar o Snake Game
+[x] Implementar o algoritmo genético
+[ ] Implementar a visualização da evolução da aptidão
+[ ] Implementar a seleção por torneio
+[ ] Implementar o crossover
+[ ] Implementar a mutação
+[ ] Implementar a elitismo
+[ ] Implementar a torneio
+[ ] Implementar a mutação
+
+
+### ✅ Nível Fácil +
+
 **1. Visualização da Evolução da Aptidão**
-- **Objetivo:** Exibir um gráfico em tempo real da média de aptidão da população a cada geração.
-- **Benefícios:** Ajuda a entender o progresso do algoritmo e identificar possíveis estagnações.
-- **Ferramentas:** Utilize bibliotecas como `matplotlib` ou `plotly` para a visualização.
+- **Objetivo:** Exibir um gráfico em tempo real da média de aptidão da população a cada geração.
+- **Benefícios:** Ajuda a entender o progresso do algoritmo e identificar possíveis estagnações.
+- **Ferramentas:** Utilize bibliotecas como `matplotlib` ou `plotly` para a visualização.
 
 **2. Implementar Elitismo**
-- **Objetivo:** Garantir que os melhores indivíduos de cada geração sejam preservados na próxima.
-- **Benefícios:** Evita a perda de soluções de alta qualidade durante o processo evolutivo.
-- **Implementação:** Copiar os top N indivíduos diretamente para a próxima geração antes de aplicar crossover e mutação.
+- **Objetivo:** Garantir que os melhores indivíduos de cada geração sejam preservados na próxima.
+- **Benefícios:** Evita a perda de soluções de alta qualidade durante o processo evolutivo.
+- **Implementação:** Copiar os top N indivíduos diretamente para a próxima geração antes de aplicar crossover e mutação.
 
 ---
 
